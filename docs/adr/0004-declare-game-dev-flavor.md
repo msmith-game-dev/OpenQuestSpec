@@ -1,8 +1,13 @@
 # ADR-0004: Declare the game-dev flavor, scoped by layer
 
-- **Status:** Proposed
+- **Status:** Rejected
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
+
+> **Rejected.** Not because the decision was wrong, but because it is not an architecture decision.
+> See *Rejection reason* at the end. The record is retained so the question is not reopened without
+> the reasoning.
 
 ## Context
 
@@ -88,3 +93,42 @@ done." Scoping preserves the flavor's value while removing the checks that canno
 - Resolve the frame budget and minimum-spec hardware before defining the Unity runtime milestone.
 - Re-read this scoping at the first Unity milestone and confirm the layer boundaries still describe the
   project.
+
+---
+
+## Rejection reason
+
+Rejected 2026-08-21, on the grounds that this is not an architecture decision.
+
+`Flavor: game-dev` is configuration for the Claude Code skills pipeline. It tells the PM, Dev, QA
+and review skills which checklist to apply. That is a property of the development *tooling*, not of
+OpenQuestSpec. An ADR records a decision about the software and its constraints; which review
+checklist an author's assistant runs is neither, and would not survive the tooling being changed or
+dropped.
+
+The same objection applies to the `Flavor extensions` section this record justified in
+`ARCHITECTURE.md`. A contributor reading that document encountered a marker and a vocabulary
+referring to skills they do not have and cannot act on — a document describing the project's
+architecture had acquired a section describing someone's editor setup.
+
+**Nothing of substance was lost.** The rules that were genuinely about this software were rewritten
+as ordinary architecture and are now stated in plain terms:
+
+| Was, under the flavor | Now |
+|---|---|
+| Simulation model | `ARCHITECTURE.md` → *Emitted code → Runtime semantics* |
+| Engine and target, frame budget | *Emitted code → Targets* |
+| Scene and asset structure (emitted part) | *Emitted code → Output conventions* |
+| Save format versioning | *Emitted code → Save format* |
+| Data and tuning | *Content and tuning* |
+| Testing in an engine | *Testing strategy → Engine tests* |
+| Determinism | already a first-class section; untouched |
+
+The two open `TBD` values — minimum supported Unity editor version, and the frame budget with its
+minimum-spec hardware — survive as ordinary architectural gaps under *Emitted code*. They still
+block any performance claim, for the ordinary reason that a measurement without a stated budget
+proves nothing.
+
+Consequently the project runs the delivery loop unflavored. If game-specific process checks are
+wanted later — most plausibly at the first milestone that emits runnable Unity code — that is a
+tooling configuration change, and it does not need an ADR then either.

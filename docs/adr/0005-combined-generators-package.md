@@ -1,7 +1,8 @@
 # ADR-0005: Combine all engine generators in a single workspace package
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context

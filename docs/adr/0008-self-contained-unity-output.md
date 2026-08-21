@@ -1,7 +1,8 @@
 # ADR-0008: Emit fully self-contained Unity output
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context
@@ -32,8 +33,8 @@ would own the state machine, objective evaluation, and save versioning.
 
 Its decisive advantage is the upgrade path: a determinism bug in the state machine is fixed once, in a
 package every consumer upgrades through a mechanism they already use. It would also give the
-`game-dev` flavor (ADR-0004) a natural home, since frame budget, determinism, and save migration would
-all bind to one hand-written, testable component.
+runtime rules a natural home, since frame budget, determinism, and save migration would all bind to
+one hand-written, directly testable component rather than to template output.
 
 Rejected in favour of consumers needing to install nothing and the output being fully auditable.
 

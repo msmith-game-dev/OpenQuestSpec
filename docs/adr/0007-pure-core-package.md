@@ -1,7 +1,8 @@
 # ADR-0007: Keep the core package pure
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 - **Note:** Unlike ADR-0001 through 0006 and 0008, this decision was not selected from a menu of
   options by the owner. It was derived during the architecture pass as a consequence of the adoption
@@ -97,3 +98,24 @@ holds — to a third party as a side effect of a URL in a file.
   multi-file document is supported.
 - Ensure the diagnostic for a remote `$ref` explains the decision rather than reporting a generic
   unresolved-reference error.
+
+---
+
+## Review notes
+
+Reviewed 2026-08-21. Accepted with one review finding outstanding, at the owner's direction.
+
+**Finding:** this record covers two separable decisions, and the record's own wording gives it away
+— "Separately, the toolchain performs no network access at runtime at all." Core purity is about
+which package may touch the filesystem and the process. The no-network rule is about air-gapped
+studios and about not leaking unreleased quest content to a third party as a side effect of a URL in
+a file. Neither rationale implies the other, and the no-network rule binds every package rather than
+just `core`.
+
+**Accepted as one record anyway**, at the owner's direction.
+
+**Consequence to be aware of.** These two can move independently. Should remote `$ref` ever be
+supported — the likelier change, since OpenAPI permits it and users will ask — that does not relax
+core purity in the slightest; `cli` would still do the fetching and hand `core` resolved text. A
+superseding record must be explicit that it changes only the network half, or it will read as
+permitting `core` to perform I/O, which is the one thing this record most needs to prevent.

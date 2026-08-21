@@ -1,7 +1,6 @@
 # Architecture
 
-> Last updated: 2026-08-20
-> Flavor: game-dev
+> Last updated: 2026-08-21
 
 > **Designed, not yet built.** This architecture was written before implementation.
 > Re-run `/architecture` after the first milestone ships to reconcile it with the real code.
@@ -29,24 +28,36 @@ is the difference between publishing a format and publishing a tool.
 | Language | TypeScript, ESM only | 5.x |
 | Package manager | pnpm workspaces | 9.x |
 | Schema validation | Ajv, JSON Schema 2020-12 | 8.x |
-| YAML parsing | `yaml` (eemeli) — chosen for source-position preservation | 2.x |
+| JSON parsing (positions) | `json-source-map` — maps JSON Pointers to line/column | 0.6.x |
 | Templating | Handlebars | 4.x |
 | CLI argument parsing | commander | 12.x |
 | Test framework | Vitest | 2.x |
 | Build | `tsc` project references | 5.x |
 | Release | changesets | 2.x |
 
+The runtime and language are binding: the toolchain is written in TypeScript on Node.js and
+distributed via npm (ADR-0001).
+
 Notes on choices that are not interchangeable:
 
-- **`yaml` over `js-yaml`** — it retains line and column information for every node. Error
-  messages that point at the offending line in a quest file are the single largest usability
-  factor in a spec toolchain, and they are impossible to retrofit onto a parser that discards
-  positions.
+- **A position-preserving JSON parser, not `JSON.parse`** — `JSON.parse` discards all position
+  information. Error messages that point at the offending line in a quest document are the single
+  largest usability factor in a spec toolchain, and they cannot be retrofitted onto a parser that
+  throws positions away. `json-source-map` is chosen because it produces a JSON Pointer → position
+  map, and Ajv reports errors by JSON Pointer (`instancePath`); the two compose directly into the
+  `pointer` and `loc` fields of `Diagnostic` with no glue. `jsonc-parser` is the viable alternative.
+
+  > **Trap:** `jsonc-parser` tolerates comments. Using a tolerant parser in strict mode is fine;
+  > *permitting* comments in the format is not. A document with comments is not JSON, and the
+  > premise of ADR-0002 — that any conforming JSON parser reads a quest document identically —
+  > collapses the moment it is allowed.
 - **Ajv** — JSON Schema is the normative validator (see *The specification* above), so the
   runtime validator must be a JSON Schema implementation rather than a TypeScript-native
   library like Zod. Zod would make the schema a derived artifact instead of the source of truth,
   which inverts the entire product.
-- **Handlebars** — deliberately logic-less. See *Generators* under Layer rules.
+- **Handlebars** — deliberately logic-less, and chosen for that constraint rather than despite it.
+  Anything beyond presence checks and iteration must become a helper registered in TypeScript, where
+  it is typed and unit-tested. See *Generators* under Layer rules (ADR-0003).
 
 There is no database, no HTTP server, and no authentication layer in this project. Those
 sections appear below marked not applicable rather than omitted, so their absence is a recorded
@@ -60,17 +71,23 @@ decision rather than an oversight.
 packages/
   schema/       The normative JSON Schema documents and the specification prose.
                 ZERO runtime dependencies. Published standalone so third parties can
-                validate quest documents in any language without our toolchain.
+                validate quest documents in any language without our toolchain, under
+                Apache 2.0 (ADR-0009) — the licence is what makes that right real
+                rather than nominal.
                 Contains no TypeScript logic — only .json schemas, .md prose, and
                 the conformance test corpus.
 
-  core/         Parse -> validate -> normalize. Turns raw YAML/JSON text into a
+  core/         Parse -> validate -> normalize. Turns raw JSON text into a
                 QuestDocument view model, or into a list of Diagnostics.
                 PURE: no filesystem, no process, no console, no network.
 
-  generators/   All engine generators. Handlebars templates plus the TypeScript
-                helpers registered for them. Takes a QuestDocument, returns an
-                array of { path, contents }. Writes nothing to disk.
+  generators/   All engine generators, sharing one package and one version
+                (ADR-0005). Handlebars templates plus the TypeScript helpers
+                registered for them. Takes a QuestDocument, returns an array of
+                { path, contents }. Writes nothing to disk.
+                Keep each engine in its own directory here: the accepted cost of
+                this layout is that every engine ships on one version, and a
+                future split should be a move, not a refactor.
 
   cli/          Argument parsing, file discovery, reading input, writing output,
                 formatting diagnostics, exit codes. The ONLY package permitted to
@@ -83,10 +100,12 @@ docs/
 examples/       Complete, valid quest documents used in docs and as test fixtures.
 ```
 
-The purity of `core` is not stylistic. It is what allows the same validation logic to run in a
-browser playground, in a VS Code language server, and in CI — three surfaces that matter a great
+The purity of `core` is not stylistic (ADR-0007). It is what allows the same validation logic to run
+in a browser playground, in a VS Code language server, and in CI — three surfaces that matter a great
 deal for a format seeking adoption, and all three are closed off the moment `core` calls
-`fs.readFileSync`.
+`fs.readFileSync`. The rule is currently written down but not enforced; a dependency check that
+fails the build on a forbidden import belongs in the first milestone that creates `core`, because a
+rule only written down will eventually be broken.
 
 ---
 
@@ -103,8 +122,8 @@ deal for a format seeking adoption, and all three are closed off the moment `cor
 
 - **Allowed:** Parsing, schema validation, semantic validation, reference resolution, normalization
   into the view model. Returning `Diagnostic[]`.
-- **Forbidden:** `fs`, `path` resolution against the real filesystem, `process`, `console`,
-  network calls, `process.exit`. Throwing for user-input errors.
+- **Forbidden (ADR-0007):** `fs`, `path` resolution against the real filesystem, `process`,
+  `console`, network calls, `process.exit`. Throwing for user-input errors.
 - **Rule:** Invalid user input produces diagnostics, never exceptions. Exceptions in `core` mean a
   bug in `core`. A caller must be able to validate a document held entirely in memory.
 
@@ -114,9 +133,9 @@ deal for a format seeking adoption, and all three are closed off the moment `cor
   templates, returning `EmittedFile[]`.
 - **Forbidden:** Writing files. Reading files other than its own bundled templates. Mutating the
   view model. Importing from `cli`.
-- **Rule — templates render, they do not decide.** Any branching beyond simple presence checks
-  and iteration belongs in a registered TypeScript helper or in the view model, where it is typed
-  and unit-testable.
+- **Rule — templates render, they do not decide (ADR-0003).** Any branching beyond simple presence
+  checks and iteration belongs in a registered TypeScript helper or in the view model, where it is
+  typed and unit-testable.
 
   **This rule is about generation time, not run time.** Because Unity output is self-contained
   (ADR-0008), templates emit C# that contains real logic — a quest state machine, objective
@@ -179,7 +198,7 @@ This is verified by an automated test, not by discipline — see *Testing strate
 | Handlebars templates | `<output-name>.<ext>.hbs`, kebab-case | `quest-registry.cs.hbs` |
 | Handlebars helpers | camelCase, verb or cast | `pascal`, `csharpEscape` |
 | Diagnostic codes | `OQS` + four digits | `OQS0142` |
-| Spec field names (in YAML/JSON) | camelCase | `objectives`, `requiresAll` |
+| Spec field names (in JSON) | camelCase | `objectives`, `requiresAll` |
 | Quest / objective ids (authored) | kebab-case | `bandit-camp`, `reach-camp` |
 | Generated C# types | PascalCase, derived from id | `bandit-camp` -> `BanditCampQuest` |
 | Generated C# files | PascalCase, matching the type | `BanditCampQuest.cs` |
@@ -193,10 +212,13 @@ a generator helper. The spec never dictates a host language's naming.
 
 ## The specification and its versioning
 
+Quest documents are JSON and only JSON. YAML is not supported, and the specification prose states
+why — readers arriving from OpenAPI will expect it (ADR-0002).
+
 Every quest document declares the spec version it targets:
 
-```yaml
-openquest: 0.1-draft
+```json
+{ "openquest": "0.1-draft" }
 ```
 
 **Draft phase (now).** Versions are `0.x-draft`. There is no compatibility promise between
@@ -213,10 +235,14 @@ are editorial corrections to the prose that never change validity.
 - **Major** — may remove or change the meaning of fields. Requires a written migration path.
 
 The toolchain reads any minor version within a major it supports, and must reject a document
-declaring a higher minor than it knows, with a diagnostic naming the version it would need. Silently
-ignoring unknown fields is forbidden: it turns a typo into data loss.
+declaring a higher minor than it knows, with a diagnostic naming the version it would need.
 
-See ADR-0006 for why the draft phase exists.
+**Unknown fields are rejected, never ignored (ADR-0006).** Silently ignoring them turns a typo into
+data loss — a quest that quietly does nothing is far worse than one that fails to build. The cost is
+that forward compatibility is strictly impossible: an older toolchain cannot partially process a
+newer document even where the new fields are irrelevant to it. Vendor `x-` prefixed fields are the
+sanctioned escape from this strictness, and with JSON offering no comments either (ADR-0002), they
+are the only place an author can put anything the spec did not anticipate.
 
 ---
 
@@ -273,12 +299,14 @@ read by application code.
 
 ## External services
 
-None at runtime. The toolchain performs no network access, by design: a build step that reaches
-the network is a build step that fails in an air-gapped studio and leaks quest content out of one.
+None at runtime. The toolchain performs no network access in any package, by design (ADR-0007): a
+build step that reaches the network is a build step that fails in an air-gapped studio and leaks
+quest content out of one. Either reason alone would be sufficient.
 
 `$ref` resolution across files is therefore restricted to the local filesystem, resolved by `cli`
-and handed to `core` as already-loaded text. Remote `$ref` over http(s) is explicitly not
-supported.
+and handed to `core` as already-loaded text. Remote `$ref` over http(s) is explicitly not supported.
+This diverges from OpenAPI, where it is expected, so the diagnostic must explain the decision rather
+than report a generic unresolved reference — users will try it.
 
 CI-only services: npm registry (publish), GitHub Actions.
 
@@ -317,8 +345,9 @@ reproducible from what is committed.
 - Generator output for each example document is committed under `examples/`.
 - CI regenerates and asserts a zero diff. A deliberate change to templates is accompanied by the
   regenerated files in the same commit, which makes every output change visible in review.
-- **This is load-bearing.** Because Unity output is self-contained, the emitted state machine is
-  real logic that no other test would otherwise inspect.
+- **This is load-bearing, not a nicety (ADR-0008).** Because emitted output is self-contained, the
+  generated state machine is real logic that no other test inspects. Without golden files, a change
+  to quest evaluation semantics reaches consumers unreviewed.
 
 ### Determinism test
 
@@ -331,7 +360,22 @@ reproducible from what is committed.
 - Generated C# must actually compile. CI compiles the Unity golden files against the Unity
   reference assemblies for the minimum supported editor version.
 - A codegen project without a compile test is asserting that strings look right, which is not the
-  same claim as the code being valid.
+  same claim as the code being valid. Also load-bearing under ADR-0008, and doubly so given the
+  toolchain is written in a language that cannot compile its own output (ADR-0001).
+
+### Engine tests
+
+- Unity playmode tests over emitted quest code, verifying state transitions and save round-trips.
+- Introduced with the first Unity generator milestone. Run on demand and on release, not on every
+  PR — they need an editor installed and are far slower than everything above.
+- Some behaviour can only be confirmed by running it. That is legitimate; record what was done, on
+  which build, editor version, and hardware. A verification step recorded as done without being done
+  is worse than no step, because it reads as evidence.
+- Performance measurement procedure and where results are recorded: **TBD, defined with the first
+  Unity runtime milestone**, alongside the frame budget and minimum spec under *Emitted code*.
+
+Everything above this subsection runs headless, needs no engine, and runs on every PR. That split is
+deliberate: the great majority of what can go wrong here is catchable without launching anything.
 
 ### Running tests
 
@@ -375,116 +419,106 @@ The most common change to the spec. It touches every layer, which is why it is w
 Rules in this file state *what*. The *why* lives in `docs/adr/`. Accepted ADRs are binding —
 if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 
-> **All eight ADRs are `Proposed` and not yet binding.** They were written during this architecture
-> pass and require `/adr-review` before they carry authority. Until then the rules in this file
-> stand on their own; on acceptance, `/adr-review` propagates each decision here and this table
-> becomes the authoritative cross-reference.
+> **All records are decided: 0001, 0002, 0003, 0005, 0006, 0007, 0008 and 0009 are `Accepted` and
+> binding; 0004 was rejected. Nothing is `Proposed`.** Proposed
+> records require `/adr-review` before they carry authority; until then the rules in this file stand
+> on their own reasoning. On acceptance, `/adr-review` propagates each decision here and cites it
+> inline on the rule it produced.
 
-| ADR | Decision | Affects |
-|---|---|---|
-| [0001](docs/adr/0001-typescript-node-toolchain.md) | TypeScript/Node for the toolchain | Every package |
-| [0002](docs/adr/0002-yaml-json-normative-schema.md) | YAML + JSON with a normative JSON Schema | `schema`, `core` |
-| [0003](docs/adr/0003-logic-less-handlebars-templates.md) | Template-based generation with logic-less templates | `generators` |
-| [0004](docs/adr/0004-declare-game-dev-flavor.md) | Declare `Flavor: game-dev`, scoped by layer | The whole delivery loop |
-| [0005](docs/adr/0005-combined-generators-package.md) | Workspace split, generators combined in one package | Package layout, release cadence |
-| [0006](docs/adr/0006-draft-versioning-until-1-0.md) | Draft versioning now, semver from 1.0 | The spec's compatibility promise |
-| [0007](docs/adr/0007-pure-core-package.md) | `core` is pure — no filesystem, no process | `core`, `cli`, future playground and LSP |
-| [0008](docs/adr/0008-self-contained-unity-output.md) | Unity output is fully self-contained | `generators`, every consumer's upgrade path |
+| ADR | Status | Decision | Affects |
+|---|---|---|---|
+| [0001](docs/adr/0001-typescript-node-toolchain.md) | **Accepted** | TypeScript/Node for the toolchain | Every package |
+| [0002](docs/adr/0002-json-normative-schema.md) | **Accepted** | JSON with a normative JSON Schema | `schema`, `core` |
+| [0003](docs/adr/0003-logic-less-handlebars-templates.md) | **Accepted** | Template-based generation with logic-less templates | `generators` |
+| [0004](docs/adr/0004-declare-game-dev-flavor.md) | ~~Rejected~~ | Declare `Flavor: game-dev` — not an architecture decision | — |
+| [0005](docs/adr/0005-combined-generators-package.md) | **Accepted** | Workspace split, generators combined in one package | Package layout, release cadence |
+| [0006](docs/adr/0006-draft-versioning-until-1-0.md) | **Accepted** | Draft versioning now, semver from 1.0 | The spec's compatibility promise |
+| [0007](docs/adr/0007-pure-core-package.md) | **Accepted** | `core` is pure — no filesystem, no process | `core`, `cli`, future playground and LSP |
+| [0008](docs/adr/0008-self-contained-unity-output.md) | **Accepted** | Unity output is fully self-contained | `generators`, every consumer's upgrade path |
+| [0009](docs/adr/0009-apache-2-license.md) | **Accepted** | Apache 2.0 for the specification and toolchain | Licensing, implementability by third parties |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.
 
 ---
 
-## Flavor extensions — game-dev
+## Emitted code
 
-This project declares `Flavor: game-dev`. The flavor is written for projects whose deliverable is
-a running game; OpenQuestSpec's deliverable is tooling plus the code it emits. Per flavor rule 1,
-`ARCHITECTURE.md` overrides the flavor's defaults, and **this section states that override once**:
+Rules governing the code the generator produces. They constrain what templates may emit and what a
+consumer can rely on. None of this applies to the toolchain itself — see *Determinism* for the rules
+that bind generation.
 
-- **Binding now, on the toolchain:** determinism, save-format versioning, data-and-tuning
-  separation, headless testing.
-- **Binding on emitted Unity code, verified from the first Unity milestone:** engine boundary,
-  frame budget, allocation rules, playable verification.
-- **Not applicable:** scene and prefab organisation, asset pipelines, large-file handling. This
-  repository ships no game assets. These are marked as such rather than left blank so that a
-  future contributor does not read the gap as an omission.
+**Emitted output is fully self-contained (ADR-0008).** It depends on nothing but the target engine —
+no runtime package, no library to install. The quest state machine, objective evaluation, and save
+handling are all generated into the consumer's project. The accepted cost is that a fix to any of
+that logic reaches a consumer only when they regenerate, which is why the golden-file and compile
+tests under *Testing strategy* are load-bearing rather than advisory.
 
-QA must not report a frame-budget or playable-verification finding against a milestone that ships
-only toolchain code — there is no subject to measure. It must report them from the first milestone
-that emits runnable Unity code onward.
-
-### Engine and target
+### Targets
 
 - **First target:** Unity. Minimum supported editor version — **TBD, decided when the Unity
-  generator milestone is defined.** It determines the C# language level the templates may emit,
-  so it is a generation-time constraint, not just a support statement.
+  generator milestone is defined.** It determines the C# language level templates may emit, so it is
+  a generation-time constraint, not merely a support statement.
 - **Later targets:** Godot, Unreal. No commitment on ordering.
-- **Frame budget for emitted code:** quest evaluation must fit within **TBD ms** of a 16.6 ms
-  frame at 60 fps. Set when the Unity runtime milestone is defined; the flavor forbids signing off
-  performance against a budget that was never stated.
-- **Minimum spec hardware:** TBD — required before any performance sign-off.
+- **Frame budget:** quest evaluation must fit within **TBD ms** of a 16.6 ms frame at 60 fps, on
+  **TBD** minimum-spec hardware. Both are required before any performance claim can be made — a
+  measurement with no stated budget proves nothing, and a number from a dev machine reported without
+  qualification is misinformation.
 
-### Simulation model
+### Runtime semantics
 
-- **Quest state advances on explicit events, not on a timer.** Emitted code exposes an advance
-  step driven by the host game; it never subscribes to `Update` itself. The host decides whether
-  quests tick on the fixed timestep or on a rendered frame, because only the host knows.
-- **No wall-clock reads in emitted logic.** Any time-based objective is expressed in game time
-  supplied by the host, never `DateTime.Now` or `Time.realtimeSinceStartup`.
-- **Deterministic evaluation.** Given the same state and the same event sequence, quest evaluation
-  produces the same result. Objective ordering in emitted code is sorted by id, never by document
-  encounter order.
-- **No random draws in emitted quest logic.** If a spec feature ever requires randomness, it takes
-  a seed from the host. There is no generator-side random source at all (see *Determinism*).
-- **Multiplayer authority:** out of scope for the spec. Quest state is host-authoritative by
+- **Quest state advances on explicit events, not on a timer.** Emitted code exposes an advance step
+  driven by the host game; it never subscribes to `Update` itself. The host decides whether quests
+  tick on the fixed timestep or on a rendered frame, because only the host knows.
+- **No wall-clock reads.** Any time-based objective is expressed in game time supplied by the host,
+  never `DateTime.Now` or `Time.realtimeSinceStartup`.
+- **Deterministic evaluation.** Given the same state and the same event sequence, evaluation
+  produces the same result. Objective ordering is sorted by id, never by document encounter order.
+- **No random draws.** If a spec feature ever requires randomness it takes a seed from the host.
+  There is no generator-side random source at all.
+- **No allocation in the per-evaluation path**, and no synchronous I/O. Emitted code runs inside
+  someone else's frame; it must not be the reason theirs is slow.
+- **Multiplayer authority is out of scope for the spec.** Quest state is host-authoritative by
   construction; the spec describes what a quest *is*, not how it replicates.
 
-### Scene and asset structure
-
-Not applicable to this repository — it ships no scenes, prefabs, or asset binaries.
-
-For **emitted** output, the convention the generator follows:
+### Output conventions
 
 - Output goes to a single consumer-specified directory, defaulting to `Assets/Quests/`.
 - Every emitted file carries a header marking it generated, naming the spec version and generator
   version, and stating that edits will be overwritten.
 - The generator never writes outside its output directory and never deletes files it did not emit.
-- Quest and objective identifiers from the spec are the referencing mechanism. Emitted code
-  references quests through generated typed constants, never string paths — a renamed quest becomes
-  a compile error in the consumer's project, which is the loud failure the flavor asks for.
+- Emitted code references quests through generated typed constants, never string paths. A renamed
+  quest then becomes a compile error in the consumer's project rather than a silent runtime failure.
 
-### Data and tuning
+### Save format
 
-The quest document **is** the tuning data, and this is the cleanest fit the flavor has here.
+Emitted save code is versioned from the first commit that writes it. Because output is
+self-contained, the save version is derived deterministically from the spec version and the
+generator's major version, and is embedded in emitted save data.
 
-- Designers change quest structure, objectives, and rewards by editing YAML and re-running the
+A migration path is required for any change to the emitted save structure. Shipped saves cannot be
+un-broken, and under self-contained output a consumer cannot receive a fix except by regenerating —
+which makes the migration path more important here than it would be with a shared runtime library
+(ADR-0008).
+
+---
+
+## Content and tuning
+
+The quest document **is** the content and the tuning data. There is no second place where either
+lives.
+
+- Designers change quest structure, objectives, and rewards by editing JSON and re-running the
   generator. No C# change is required for content work.
-- Balance numbers — reward amounts, thresholds, counts — live in the document, not in emitted code
-  as constants. Per flavor rule 4 they are **not** business rules and must never become `BR-XXX`
-  entries. "A quest cannot complete before all required objectives complete" is a rule; "the bandit
-  camp pays 250 gold" is tuning.
-- **Save format.** Emitted save code is versioned from the first commit that writes it. Because
-  output is self-contained, the save version is derived deterministically from the spec version and
-  the generator's major version, and is embedded in emitted save data. A migration path is required
-  for any change to the emitted save structure — shipped saves cannot be un-broken, and under
-  self-contained output the consumer cannot receive a fix except by regenerating, which makes the
-  migration path more important here than it would be with a shared runtime package.
+- JSON has no comments, so authored intent belongs in first-class `description` fields rather than
+  in annotations the format cannot carry (ADR-0002).
+- Balance numbers — reward amounts, thresholds, counts — live in the document, never in emitted code
+  as constants.
 
-### Testing in an engine
-
-- **Headless (the great majority):** everything in `core` and `generators`, plus compilation of
-  emitted C#. No Unity editor required, so it runs on every PR.
-- **Requires a running engine:** Unity playmode tests over emitted quest code, verifying state
-  transitions and save round-trips. Introduced with the first Unity generator milestone; run on
-  demand and on release, not on every PR.
-- **Seeding:** not applicable — there is no randomness anywhere in the toolchain or in emitted
-  quest logic, by rule.
-- **Manual verification:** required only for milestones that emit runnable Unity code. Recorded in
-  the QA report naming the build, the editor version, and the hardware. Per flavor rule 3, a manual
-  step recorded as done without being done fails the QA pass.
-- **Performance measurement:** procedure and results location — **TBD, defined with the first
-  Unity runtime milestone**, together with the budget and minimum spec above.
+Balance values are **tuning, not invariants.** "A quest cannot complete before all its required
+objectives complete" is a rule about the system and belongs in `BUSINESS_RULES.md`. "The bandit camp
+pays 250 gold" is a number a designer changes on a Tuesday, and encoding it as a rule would turn
+every balance pass into a specification change.
 
 ---
 

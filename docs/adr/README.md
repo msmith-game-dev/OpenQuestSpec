@@ -7,24 +7,26 @@ Status: **Proposed** (awaiting `/adr-review`) · **Accepted** · **Rejected** ·
 
 | # | Title | Status | Date |
 |---|---|---|---|
-| [0001](0001-typescript-node-toolchain.md) | Use TypeScript and Node.js for the toolchain | Proposed | 2026-08-20 |
-| [0002](0002-yaml-json-normative-schema.md) | Serialize quest documents as YAML and JSON with a normative JSON Schema | Proposed | 2026-08-20 |
-| [0003](0003-logic-less-handlebars-templates.md) | Generate code from logic-less Handlebars templates | Proposed | 2026-08-20 |
-| [0004](0004-declare-game-dev-flavor.md) | Declare the game-dev flavor, scoped by layer | Proposed | 2026-08-20 |
-| [0005](0005-combined-generators-package.md) | Combine all engine generators in a single workspace package | Proposed | 2026-08-20 |
-| [0006](0006-draft-versioning-until-1-0.md) | Ship draft spec versions until 1.0, then semantic versioning | Proposed | 2026-08-20 |
-| [0007](0007-pure-core-package.md) | Keep the core package pure | Proposed | 2026-08-20 |
-| [0008](0008-self-contained-unity-output.md) | Emit fully self-contained Unity output | Proposed | 2026-08-20 |
-| [0009](0009-apache-2-license.md) | License the specification and toolchain under Apache 2.0 | Proposed | 2026-08-20 |
+| [0001](0001-typescript-node-toolchain.md) | Use TypeScript and Node.js for the toolchain | **Accepted** | 2026-08-20 |
+| [0002](0002-json-normative-schema.md) | Serialize quest documents as JSON with a normative JSON Schema | **Accepted** | 2026-08-21 |
+| [0003](0003-logic-less-handlebars-templates.md) | Generate code from logic-less Handlebars templates | **Accepted** | 2026-08-20 |
+| [0004](0004-declare-game-dev-flavor.md) | Declare the game-dev flavor, scoped by layer | ~~Rejected~~ | 2026-08-20 |
+| [0005](0005-combined-generators-package.md) | Combine all engine generators in a single workspace package | **Accepted** | 2026-08-20 |
+| [0006](0006-draft-versioning-until-1-0.md) | Ship draft spec versions until 1.0, then semantic versioning | **Accepted** | 2026-08-20 |
+| [0007](0007-pure-core-package.md) | Keep the core package pure | **Accepted** | 2026-08-20 |
+| [0008](0008-self-contained-unity-output.md) | Emit fully self-contained Unity output | **Accepted** | 2026-08-20 |
+| [0009](0009-apache-2-license.md) | License the specification and toolchain under Apache 2.0 | **Accepted** | 2026-08-20 |
 
 ## Reading order
 
 0001 through 0008 were written together during the initial architecture pass and are best read as one
 argument. 0001 and 0002 set the adoption strategy — the specification spreading matters more than
 any single implementation's convenience — and 0007 follows from both. 0003 and 0005 concern how
-engine support scales. 0006 is the compatibility promise. 0004 and 0008 are the two where the
-recorded reasoning diverges from the recommendation made at the time; both note their revisit
-triggers. 0009 followed shortly after and is a precondition for 0002 rather than a consequence of it.
+engine support scales. 0006 is the compatibility promise. 0009 followed shortly after and is a
+precondition for 0002 rather than a consequence of it.
+
+**0004 was rejected on scope, not on merit** — it recorded a decision about development tooling
+rather than about this software. Read its rejection reason for where its substance now lives.
 
 **0007 and 0009 were not selected from options by the owner** — both were derived and written up for
 review. 0009 in particular carries legal consequence and should be confirmed deliberately rather than

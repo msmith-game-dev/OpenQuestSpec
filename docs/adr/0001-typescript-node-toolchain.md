@@ -1,7 +1,8 @@
 # ADR-0001: Use TypeScript and Node.js for the toolchain
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-20
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context
@@ -21,6 +22,12 @@ The implementation language for the toolchain was open. Two forces pulled in opp
 
 The project's stated ambition is to "become the OpenAPI specs but for quests." That is a statement
 about the format spreading, not about one generator being convenient.
+
+A third force, and at this stage a decisive one: **the implementer is already fluent in
+TypeScript.** The hard work ahead is designing the quest model and iterating on it quickly, not
+writing the toolchain. A language the implementer would have to learn while inventing a domain
+compounds two unknowns at exactly the point where iteration speed matters most. Existing fluency is
+therefore not a tiebreaker here but a primary constraint.
 
 ## Decision
 

@@ -1,7 +1,8 @@
 # ADR-0009: License the specification and toolchain under Apache 2.0
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 - **Note:** Like ADR-0007, this decision was **not** selected from options by the owner. It is a
   recommendation written up for review because licensing was identified as an urgent open question.
@@ -104,3 +105,32 @@ interchange format uses copyleft, and that is not a coincidence.
 - Governance, deferred: who decides what enters the specification, and what happens to it if the
   project loses its maintainer. Studios evaluating a long-lived content-pipeline dependency ask this,
   but it can wait until adoption makes it concrete.
+
+---
+
+## Review notes
+
+Reviewed 2026-08-21. Accepted with two review findings outstanding, at the owner's direction.
+
+**Finding 1 — authority to license is unstated, and this is the material one.** The record names
+"Project owner" as decider. The repository's commit identity is a company address
+(`arcticflamegames.com`). If this work is produced under an employment relationship, copyright may
+vest in the employer rather than the individual, in which case the licence granted here is not the
+owner's to grant. Choosing the right licence does not remedy choosing it without the right to.
+
+Accepted without resolving. **The exposure is contained but real:** accepting this record is not
+itself the legal act. No `LICENSE` file has been written, and Apache 2.0 requires naming a copyright
+holder — which cannot be filled in without answering this question. The commitment happens when that
+file is created, not here.
+
+**Finding 2 — an alternative specific to specifications was not considered.** The record weighs MIT,
+Creative Commons, and copyleft, but not licences purpose-built for specifications: the Open Web
+Foundation Agreement (used by GraphQL), or W3C-style terms. These separate the licence over the
+*specification text* from the licence over *implementations*, which is precisely the split a project
+publishing both a format and a toolchain has to reason about. Their omission does not make Apache
+2.0 wrong — it is a common and defensible choice for this purpose — but the record is weaker than it
+reads for not addressing them.
+
+**Before the `LICENSE` file is written**, both findings want an answer: who is named as copyright
+holder, and whether a spec-purpose licence is preferable for `packages/schema` specifically. The
+second is the cheaper question, because it only matters while the schema has no outside implementers.

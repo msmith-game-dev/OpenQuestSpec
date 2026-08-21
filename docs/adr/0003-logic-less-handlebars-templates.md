@@ -1,7 +1,8 @@
 # ADR-0003: Generate code from logic-less Handlebars templates
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context
@@ -106,3 +107,26 @@ A template holding a large emitted `switch` statement is fine. A template *compu
 emit* through nested Handlebars conditionals is not; that computation belongs in the view model.
 
 The distinction is easy to misread, so it is stated in `ARCHITECTURE.md` as well as here.
+
+---
+
+## Review notes
+
+Reviewed 2026-08-21. Accepted with one review finding outstanding, at the owner's direction.
+
+**Finding:** this record covers two separable decisions — the generation *approach* (templates,
+versus programmatic emitters or out-of-process plugins) and the template *engine* (Handlebars,
+versus Eta or Nunjucks). Review guidance is to split such a record, because one decision per ADR is
+what makes supersession clean.
+
+**Accepted as one record anyway.** The two choices were made together and reinforce each other: the
+approach was chosen for a low contribution barrier, and the engine was chosen to enforce
+structurally the discipline that approach requires. Splitting them would produce two records neither
+of which stands on its own.
+
+**Consequence to be aware of when superseding.** Replacing the template engine — the more likely of
+the two to change, most plausibly for Nunjucks if engine-variant duplication becomes painful — means
+superseding this record in full, including the template-versus-programmatic argument that is not
+actually being revisited. A superseding record should say explicitly which half it is changing and
+restate the other half as still standing, rather than leaving a reader to infer that the whole
+approach was reopened.

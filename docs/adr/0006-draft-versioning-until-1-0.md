@@ -1,7 +1,8 @@
 # ADR-0006: Ship draft spec versions until 1.0, then semantic versioning
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-20
+- **Decided:** 2026-08-21
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context
@@ -92,3 +93,30 @@ the outset than this project has.
 - Provide a way to suppress the instability warning in CI, so the warning does not train users to
   ignore all output.
 - The migration path requirement for major versions needs a written format before it is first needed.
+
+---
+
+## Review notes
+
+Reviewed 2026-08-21. Accepted with one review finding outstanding, at the owner's direction.
+
+**Finding:** this record covers two separable decisions. The first is *versioning* — draft phase
+now, semantic versioning from 1.0. The second is *extensibility* — unknown fields are rejected
+rather than ignored. Rejecting unknown fields is a policy about how a document may be extended, and
+it would hold under any versioning scheme; the two are related only because both concern
+compatibility.
+
+**Accepted as one record anyway.** Both express the same underlying stance: the format makes
+explicit promises and refuses to guess. Splitting them would separate an argument that reads as one.
+
+**Consequence to be aware of.** A superseding record that relaxes unknown-field rejection — the more
+likely of the two to be revisited, since it is the stricter position — must say so precisely, or it
+will read as reopening the versioning scheme.
+
+**Gap this finding exposed, and it is the more important half.** Vendor `x-` extension fields exist
+specifically to give authors a sanctioned escape from strict rejection, and they have **no decision
+record at all**, despite already being a committed acceptance criterion in `MILESTONES.md`. The
+no-comments consequence of ADR-0002 raised their importance further: with no comments and no
+unknown fields, `x-` is the only place a studio can put anything the spec did not anticipate.
+
+That decision should get its own ADR before the v0.1 schema is written, not after.
