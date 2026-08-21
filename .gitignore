@@ -1,0 +1,32 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+dist/
+coverage/
+.vitest/
+
+# npm debug output
+npm-debug.log*
+pnpm-debug.log*
+
+# Generated output from local runs (goldens under examples/ ARE committed)
+/out/
+/tmp-generate/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.idea/
+.vs/
+*.swp
+*~
