@@ -132,7 +132,8 @@ rule only written down will eventually be broken.
 - **Allowed:** Reading the normalized view model, registering Handlebars helpers, rendering
   templates, returning `EmittedFile[]`.
 - **Forbidden:** Writing files. Reading files other than its own bundled templates. Mutating the
-  view model. Importing from `cli`.
+  view model. Importing from `cli`. **Branching on the content of a vendor `x-` extension field
+  (ADR-0010)** — extension data is carried and emitted, never inspected.
 - **Rule — templates render, they do not decide (ADR-0003).** Any branching beyond simple presence
   checks and iteration belongs in a registered TypeScript helper or in the view model, where it is
   typed and unit-testable.
@@ -200,6 +201,7 @@ This is verified by an automated test, not by discipline — see *Testing strate
 | Diagnostic codes | `OQS` + four digits | `OQS0142` |
 | Spec field names (in JSON) | camelCase | `objectives`, `requiresAll` |
 | Quest / objective ids (authored) | kebab-case | `bandit-camp`, `reach-camp` |
+| Vendor extension fields | `^x-`, vendor segment recommended | `x-arcticflame-priority` |
 | Generated C# types | PascalCase, derived from id | `bandit-camp` -> `BanditCampQuest` |
 | Generated C# files | PascalCase, matching the type | `BanditCampQuest.cs` |
 | CLI commands and flags | kebab-case | `openquest generate --out-dir` |
@@ -240,9 +242,14 @@ declaring a higher minor than it knows, with a diagnostic naming the version it 
 **Unknown fields are rejected, never ignored (ADR-0006).** Silently ignoring them turns a typo into
 data loss — a quest that quietly does nothing is far worse than one that fails to build. The cost is
 that forward compatibility is strictly impossible: an older toolchain cannot partially process a
-newer document even where the new fields are irrelevant to it. Vendor `x-` prefixed fields are the
-sanctioned escape from this strictness, and with JSON offering no comments either (ADR-0002), they
-are the only place an author can put anything the spec did not anticipate.
+newer document even where the new fields are irrelevant to it.
+
+Vendor `x-` prefixed fields are the sanctioned escape from this strictness (ADR-0010), and with JSON
+offering no comments either (ADR-0002), they are the only place an author can put anything the spec
+did not anticipate. They are a *known category* whose contents are deliberately unconstrained, which
+refines rather than weakens the rule above: every field outside that category is still rejected when
+unrecognised. The accepted cost is that a misspelled extension name passes silently — a declared-
+extensions manifest would catch it, and was rejected on ceremony rather than principle.
 
 ---
 
@@ -419,8 +426,8 @@ The most common change to the spec. It touches every layer, which is why it is w
 Rules in this file state *what*. The *why* lives in `docs/adr/`. Accepted ADRs are binding —
 if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 
-> **All records are decided: 0001, 0002, 0003, 0005, 0006, 0007, 0008 and 0009 are `Accepted` and
-> binding; 0004 was rejected. Nothing is `Proposed`.** Proposed
+> **All records are decided. 0001, 0002, 0003, 0005, 0006, 0007, 0008, 0009 and 0010 are `Accepted`
+> and binding; 0004 was rejected. Nothing is pending.** Proposed
 > records require `/adr-review` before they carry authority; until then the rules in this file stand
 > on their own reasoning. On acceptance, `/adr-review` propagates each decision here and cites it
 > inline on the rule it produced.
@@ -436,6 +443,7 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0007](docs/adr/0007-pure-core-package.md) | **Accepted** | `core` is pure — no filesystem, no process | `core`, `cli`, future playground and LSP |
 | [0008](docs/adr/0008-self-contained-unity-output.md) | **Accepted** | Unity output is fully self-contained | `generators`, every consumer's upgrade path |
 | [0009](docs/adr/0009-apache-2-license.md) | **Accepted** | Apache 2.0 for the specification and toolchain | Licensing, implementability by third parties |
+| [0010](docs/adr/0010-vendor-extension-fields.md) | **Accepted** | `x-` vendor extension fields, carried through opaquely | `schema`, `core`, `generators` |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.

@@ -16,6 +16,7 @@ Status: **Proposed** (awaiting `/adr-review`) · **Accepted** · **Rejected** ·
 | [0007](0007-pure-core-package.md) | Keep the core package pure | **Accepted** | 2026-08-20 |
 | [0008](0008-self-contained-unity-output.md) | Emit fully self-contained Unity output | **Accepted** | 2026-08-20 |
 | [0009](0009-apache-2-license.md) | License the specification and toolchain under Apache 2.0 | **Accepted** | 2026-08-20 |
+| [0010](0010-vendor-extension-fields.md) | Support vendor extension fields prefixed `x-`, carried through as opaque data | **Accepted** | 2026-08-22 |
 
 ## Reading order
 
