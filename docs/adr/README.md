@@ -19,6 +19,8 @@ Status: **Proposed** (awaiting `/adr-review`) · **Accepted** · **Rejected** ·
 | [0010](0010-vendor-extension-fields.md) | Support vendor extension fields prefixed `x-`, carried through as opaque data | **Accepted** | 2026-08-22 |
 | [0011](0011-id-keyed-collections.md) | Key quests and objectives by id rather than listing them in arrays | Proposed | 2026-08-23 |
 | [0012](0012-params-object.md) | Carry type-specific data in an unconstrained `params` object | Proposed | 2026-08-23 |
+| [0013](0013-conformance-claims.md) | Conformance is self-certified against the corpus, and the name is reserved for conforming implementations | Proposed | 2026-08-23 |
+| [0014](0014-dco-sign-off.md) | Require DCO sign-off on contributions | Proposed | 2026-08-23 |
 
 ## Reading order
 

@@ -455,6 +455,8 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0010](docs/adr/0010-vendor-extension-fields.md) | **Accepted** | `x-` vendor extension fields, carried through opaquely | `schema`, `core`, `generators` |
 | [0011](docs/adr/0011-id-keyed-collections.md) | Proposed | Quests and objectives are maps keyed by id | Document shape, references, diagnostics |
 | [0012](docs/adr/0012-params-object.md) | Proposed | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
+| [0013](docs/adr/0013-conformance-claims.md) | Proposed | Conformance self-certified against the corpus | Who may claim to implement the format |
+| [0014](docs/adr/0014-dco-sign-off.md) | Proposed | DCO sign-off required on contributions | Contribution process, future relicensing |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.
