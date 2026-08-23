@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "A specification for describing game quests, and a generator that turns it into engine-specific code.",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/msmith-game-dev/OpenQuestSpec.git"

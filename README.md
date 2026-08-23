@@ -86,6 +86,13 @@ pnpm run corpus        # every corpus case behaves as recorded
 
 ## Licence
 
-**Not yet licensed.** Apache 2.0 has been chosen ([ADR-0009](docs/adr/0009-apache-2-license.md)) but
-the `LICENSE` file is not in place, so default copyright applies and no permission to use or
-implement is granted yet. This is being resolved.
+[Apache License 2.0](LICENSE) — see [ADR-0009](docs/adr/0009-apache-2-license.md) for why.
+
+The short version: you may implement this specification, build tooling for it, and ship products
+using it, without asking. Apache 2.0 was chosen over MIT specifically for its **express patent
+grant**, which is the question a studio's legal review asks before committing a content pipeline to
+someone else's format.
+
+> **Attribution is not yet recorded.** The licence grant above is in force, but no `NOTICE` file or
+> copyright line names the copyright holder yet. That does not affect your permission to use the
+> work; it is an open item for this project to resolve.
