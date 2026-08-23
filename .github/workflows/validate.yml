@@ -39,31 +39,44 @@ jobs:
           python-version: '3.12'
       - run: pip install check-jsonschema
 
-      - name: Valid documents are accepted
+      - name: Every corpus case behaves as recorded
+        # Expected outcomes are read from the manifest, never restated here. An earlier
+        # version hardcoded which cases were semantic; a case added later did not reach
+        # that list and CI failed on a document that was behaving correctly. Anything
+        # the manifest already knows must be read from it, not copied.
         run: |
-          check-jsonschema \
-            --schemafile packages/schema/openquest-0.1-draft.schema.json \
-            packages/schema/corpus/valid/*.json examples/*.json
+          python - <<'PY'
+          import json, pathlib, subprocess, sys
 
-      - name: Structurally invalid documents are rejected
-        run: |
-          set -u
-          schema=packages/schema/openquest-0.1-draft.schema.json
-          failed=0
-          # Semantic cases are excluded deliberately: they PASS schema validation by
-          # design, and are handled by the next step.
-          for doc in packages/schema/corpus/invalid/*.json; do
-            case "$(basename "$doc")" in requires-dangling.json|requires-cycle.json) continue ;; esac
-            if check-jsonschema --schemafile "$schema" "$doc" >/dev/null 2>&1; then
-              echo "::error file=$doc::expected rejection, but the validator accepted it"
-              failed=1
-            fi
-          done
-          exit $failed
+          corpus = pathlib.Path("packages/schema/corpus")
+          manifest = json.loads((corpus / "index.json").read_text())
+          schema = (corpus / manifest["schema"]).resolve()
 
-      - name: Semantic cases pass schema validation, as the boundary requires
-        run: |
-          check-jsonschema \
-            --schemafile packages/schema/openquest-0.1-draft.schema.json \
-            packages/schema/corpus/invalid/requires-dangling.json \
-            packages/schema/corpus/invalid/requires-cycle.json
+          def validates(path):
+              return subprocess.run(
+                  ["check-jsonschema", "--schemafile", str(schema), str(path)],
+                  capture_output=True,
+              ).returncode == 0
+
+          failures = []
+          for case in manifest["cases"]:
+              # Semantic cases pass schema validation by design: the rules they break
+              # cannot be expressed in JSON Schema at all.
+              expect_pass = case["expect"] == "valid" or case.get("layer") == "semantic"
+              if validates(corpus / case["file"]) != expect_pass:
+                  failures.append((case["file"], expect_pass))
+
+          for name in ("riverwood.json",):
+              if not validates(pathlib.Path("examples") / name):
+                  failures.append((f"examples/{name}", True))
+
+          for name, expected in failures:
+              want = "pass" if expected else "fail"
+              print(f"::error file={name}::expected this document to {want} schema validation")
+
+          total = len(manifest["cases"]) + 1
+          if failures:
+              print(f"\n{len(failures)} of {total} cases diverged from the manifest.")
+              sys.exit(1)
+          print(f"\nAll {total} cases behave as recorded, under a second implementation.")
+          PY

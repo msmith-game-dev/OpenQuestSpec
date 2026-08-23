@@ -16,3 +16,8 @@
 disagreeing, always with the schema right and the prose incomplete. On a project whose deliverable
 *is* a specification, prose is not documentation of the work; it is the work. The corpus tests the
 schema and nothing tests the prose against the schema. That gap is what produced every finding here.
+
+### Post-sign-off addendum — 2026-08-23
+
+- `stale-duplicate-config` — CI's second-validator job hardcoded which corpus cases were semantic (`requires-dangling|requires-cycle`) instead of reading `layer` from the manifest. The QA pass above added a third semantic case, the list was not updated, and the first CI run failed on a document that was behaving correctly. Fixed by deriving expected outcomes from the manifest, so the two cannot desync.
+- Notable: criterion 11 had been signed off **on inspection only**, since CI had never executed. Its first real run failed — inside the same pass that added the case which broke it. Inspecting a config proves it parses, not that it is right. Where a criterion asserts a mechanism *works*, sign-off should wait for the mechanism to run.
