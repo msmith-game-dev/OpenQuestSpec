@@ -1,0 +1,20 @@
+{
+  "openquest": "0.1-draft",
+  "x-arcticflame-pipeline": "main",
+  "info": { "title": "Extensions At Every Permitted Location" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "x-arcticflame-priority": "critical",
+      "objectives": {
+        "reach-camp": {
+          "type": "reach-location",
+          "x-arcticflame-telemetry": { "funnelStep": 3, "cohort": "new-player" }
+        }
+      },
+      "rewards": [
+        { "type": "currency", "x-arcticflame-ledger": "quest-payout" }
+      ]
+    }
+  }
+}

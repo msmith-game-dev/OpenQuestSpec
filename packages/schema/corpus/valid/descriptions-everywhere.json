@@ -1,0 +1,29 @@
+{
+  "openquest": "0.1-draft",
+  "info": {
+    "title": "Riverwood Main Questline",
+    "version": "0.3.0",
+    "description": "The opening arc. Teaches group combat before the mill siege."
+  },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "description": "Deliberately soft-gated: a player who skips it can still reach the mill, but at a level disadvantage we consider fair.",
+      "objectives": {
+        "reach-camp": {
+          "type": "reach-location",
+          "title": "Find the bandit camp",
+          "description": "No map marker on purpose. The smoke plume is the intended wayfinding cue.",
+          "params": { "location": "riverwood.camp" }
+        }
+      },
+      "rewards": [
+        {
+          "type": "currency",
+          "description": "Tuned against the tier-2 armour price, not against playtime.",
+          "params": { "amount": 250 }
+        }
+      ]
+    }
+  }
+}

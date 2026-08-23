@@ -1,0 +1,121 @@
+{
+  "corpus": "openquest-conformance",
+  "specVersion": "0.1-draft",
+  "schema": "../openquest-0.1-draft.schema.json",
+  "description": "Conformance corpus for OpenQuestSpec 0.1-draft. This is part of the specification, not an internal test fixture: any implementation may run it and report conformance. All paths are relative to this file and stay inside the published package, so the corpus is self-contained.",
+  "layers": {
+    "schema": "Detectable by a stock JSON Schema 2020-12 validator against the normative schema alone. An implementation that only validates against the schema must reject every case at this layer.",
+    "semantic": "NOT expressible in JSON Schema. Cases at this layer PASS schema validation and are still invalid. An implementation must run its own pass to reject them. Reporting these as valid is conformant to the schema but not to the specification."
+  },
+  "cases": [
+    {
+      "file": "valid/minimal.json",
+      "expect": "valid",
+      "note": "The smallest document the specification permits: version, a title, one quest, one objective."
+    },
+    {
+      "file": "valid/descriptions-everywhere.json",
+      "expect": "valid",
+      "note": "Authored intent recorded at every level. JSON has no comments, so description fields are the only sanctioned place for it."
+    },
+    {
+      "file": "valid/extensions-all-locations.json",
+      "expect": "valid",
+      "note": "An x- extension at each of the four permitted locations: document root, quest, objective, reward. Extension values may be any JSON and are never interpreted."
+    },
+    {
+      "file": "valid/unknown-field-prefixed.json",
+      "expect": "valid",
+      "note": "Pairs with invalid/unknown-field.json. Identical document except the offending field carries the x- prefix, which is the sanctioned escape from strict rejection."
+    },
+    {
+      "file": "valid/open-objective-type.json",
+      "expect": "valid",
+      "note": "Objective types the schema has never heard of. 0.1-draft defines no type vocabulary, so adding a type requires no schema change."
+    },
+
+    {
+      "file": "valid/x-key-inside-params.json",
+      "expect": "valid",
+      "note": "A key beginning x- inside params is ACCEPTED, because params contents are unconstrained. It is ordinary params data, not an extension, and earns none of the guarantees extensions carry. Recorded explicitly because the four permitted extension locations do not include params, which reads as a prohibition and is not one."
+    },
+
+    {
+      "file": "invalid/missing-openquest.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "No version declaration. A validator cannot know which rules apply and must not guess."
+    },
+    {
+      "file": "invalid/wrong-version.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "Declares a version this schema does not implement. Rejecting is required; processing it on a best-effort basis is not permitted."
+    },
+    {
+      "file": "invalid/unknown-field.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "An unrecognised field without the x- prefix. Silently ignoring it would turn a typo into data loss."
+    },
+    {
+      "file": "invalid/extension-in-info.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "An x- extension inside info, which is not one of the four permitted locations."
+    },
+    {
+      "file": "invalid/id-not-kebab.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "Quest id is not kebab-case. Ids are structural: generated type names derive from them."
+    },
+    {
+      "file": "invalid/id-reserved-x-prefix.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "Quest id begins with x-, which is reserved so that id space and extension space cannot collide."
+    },
+    {
+      "file": "invalid/objective-missing-type.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "An objective with no type. Type is what a generator dispatches on; without it the objective means nothing."
+    },
+    {
+      "file": "invalid/params-not-object.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "params contents are unconstrained, but params itself must be an object."
+    },
+
+    {
+      "file": "invalid/type-not-kebab.json",
+      "expect": "invalid",
+      "layer": "schema",
+      "note": "Objective type uses a dotted namespace. Types are an open vocabulary but not an open format: the name must be kebab-case. Identifiers inside params may use any convention, which is what makes this a common mistake."
+    },
+
+    {
+      "file": "invalid/requires-dangling.json",
+      "expect": "invalid",
+      "layer": "semantic",
+      "rule": "SEM-1",
+      "note": "requires names an objective that does not exist in the quest. PASSES schema validation: JSON Schema cannot check that a string resolves to a sibling key."
+    },
+    {
+      "file": "invalid/requires-cycle.json",
+      "expect": "invalid",
+      "layer": "semantic",
+      "rule": "SEM-2",
+      "note": "Two objectives require each other, so neither can ever start. PASSES schema validation: JSON Schema cannot traverse a graph."
+    },
+    {
+      "file": "invalid/requires-self.json",
+      "expect": "invalid",
+      "layer": "semantic",
+      "rule": "SEM-2",
+      "note": "An objective requiring itself. The degenerate one-node cycle: a cycle check comparing only DISTINCT nodes will miss it, so it is recorded separately from requires-cycle.json. PASSES schema validation."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "openquest": "0.1-draft",
+  "info": {
+    "title": "Extension At A Location That Does Not Permit One",
+    "x-arcticflame-owner": "narrative-team"
+  },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}

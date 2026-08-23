@@ -1,0 +1,11 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Unknown Field, Unprefixed" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "priority": "main",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}

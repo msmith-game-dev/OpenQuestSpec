@@ -98,6 +98,15 @@ docs/
   product/      What the product does and for whom.
 
 examples/       Complete, valid quest documents used in docs and as test fixtures.
+
+scripts/        Repo tooling only — not published, not part of the specification.
+                Drives the conformance corpus and the schema checks that CI runs.
+                MUST contain no validation logic of its own: all validation is
+                performed by a third-party JSON Schema implementation, because the
+                corpus has to assert things a third party can reproduce without
+                access to this repository (ADR-0002).
+
+.github/        CI workflows.
 ```
 
 The purity of `core` is not stylistic (ADR-0007). It is what allows the same validation logic to run
@@ -444,6 +453,8 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0008](docs/adr/0008-self-contained-unity-output.md) | **Accepted** | Unity output is fully self-contained | `generators`, every consumer's upgrade path |
 | [0009](docs/adr/0009-apache-2-license.md) | **Accepted** | Apache 2.0 for the specification and toolchain | Licensing, implementability by third parties |
 | [0010](docs/adr/0010-vendor-extension-fields.md) | **Accepted** | `x-` vendor extension fields, carried through opaquely | `schema`, `core`, `generators` |
+| [0011](docs/adr/0011-id-keyed-collections.md) | Proposed | Quests and objectives are maps keyed by id | Document shape, references, diagnostics |
+| [0012](docs/adr/0012-params-object.md) | Proposed | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.

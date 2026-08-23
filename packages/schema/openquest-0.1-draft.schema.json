@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/msmith-game-dev/OpenQuestSpec/main/packages/schema/openquest-0.1-draft.schema.json",
+  "title": "OpenQuestSpec Document (0.1-draft)",
+  "description": "The normative schema for an OpenQuestSpec quest document. Structural validity is defined entirely by this schema; two semantic rules (SEM-1, SEM-2) sit outside it and are described in SPECIFICATION.md. DRAFT: no compatibility is promised between draft versions.",
+  "type": "object",
+  "required": ["openquest", "info", "quests"],
+  "properties": {
+    "openquest": {
+      "description": "The specification version this document targets. A validator that does not know this version must reject the document rather than guess.",
+      "const": "0.1-draft"
+    },
+    "info": { "$ref": "#/$defs/info" },
+    "quests": {
+      "description": "Quests, keyed by id. Keys are ids, not extension fields (ADR-0011).",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/quest" }
+    }
+  },
+  "patternProperties": {
+    "^x-": {
+      "description": "Vendor extension. Contents are unconstrained and are never interpreted by the toolchain (ADR-0010)."
+    }
+  },
+  "additionalProperties": false,
+
+  "$defs": {
+    "id": {
+      "$comment": "Expressed as pattern + not/pattern rather than a negative lookahead, so that validators built on RE2 (which has no lookahead) can compile it. Portability is the premise of this schema being normative.",
+      "description": "An authored identifier: kebab-case, and not beginning with 'x-'. The 'x-' exclusion keeps id space and extension space from colliding if a future version permits extensions on a keyed map.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "not": { "pattern": "^x-" }
+    },
+
+    "typeName": {
+      "description": "An objective or reward type. Deliberately an open string: v0.1 defines no vocabulary, so adding a type requires no schema change. A vendor segment is recommended for custom types, e.g. 'arcticflame-escort'.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+
+    "params": {
+      "description": "Type-specific data (ADR-0012). Contents are unconstrained in 0.1-draft because no type vocabulary is defined yet; later versions add conditional validation per type. Distinct from 'x-': params is spec territory the toolchain will interpret, 'x-' is vendor territory it never will.",
+      "type": "object"
+    },
+
+    "info": {
+      "description": "Document metadata. Note this object permits no 'x-' extensions: ADR-0010 allows them at the document root, quest, objective, and reward only.",
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "description": "Human-readable name for this document, e.g. 'Riverwood Main Questline'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "The version of this content. Unrelated to 'openquest', which is the specification version.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "description": "Authored intent for the document as a whole. JSON has no comments, so description fields are the only sanctioned place for it (ADR-0002).",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "quest": {
+      "type": "object",
+      "required": ["title", "objectives"],
+      "properties": {
+        "title": {
+          "description": "Player-facing name of the quest.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "description": "Authored intent: why this quest exists, for the next designer to read.",
+          "type": "string"
+        },
+        "objectives": {
+          "description": "Objectives, keyed by id. Unordered: objectives form a dependency graph via 'requires', not a sequence.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/id" },
+          "additionalProperties": { "$ref": "#/$defs/objective" }
+        },
+        "rewards": {
+          "description": "Granted when the quest completes. An array rather than a keyed map because rewards carry no identity that anything references (ADR-0011).",
+          "type": "array",
+          "items": { "$ref": "#/$defs/reward" }
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "description": "Vendor extension. Never interpreted (ADR-0010)."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "objective": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/$defs/typeName" },
+        "title": {
+          "description": "Player-facing label, e.g. as shown in a quest log.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "description": "Authored intent, for designers rather than players.",
+          "type": "string"
+        },
+        "params": { "$ref": "#/$defs/params" },
+        "requires": {
+          "description": "Ids of objectives in the SAME quest that must complete first. Cross-quest references are not allocated in 0.1-draft. Validating that these ids resolve is SEM-1; that the resulting graph is acyclic is SEM-2. Neither is expressible in JSON Schema.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "description": "Vendor extension. Never interpreted (ADR-0010)."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "reward": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/$defs/typeName" },
+        "description": {
+          "description": "Authored intent for this reward.",
+          "type": "string"
+        },
+        "params": { "$ref": "#/$defs/params" }
+      },
+      "patternProperties": {
+        "^x-": {
+          "description": "Vendor extension. Never interpreted (ADR-0010)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

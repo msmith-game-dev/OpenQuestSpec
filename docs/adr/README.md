@@ -17,6 +17,8 @@ Status: **Proposed** (awaiting `/adr-review`) · **Accepted** · **Rejected** ·
 | [0008](0008-self-contained-unity-output.md) | Emit fully self-contained Unity output | **Accepted** | 2026-08-20 |
 | [0009](0009-apache-2-license.md) | License the specification and toolchain under Apache 2.0 | **Accepted** | 2026-08-20 |
 | [0010](0010-vendor-extension-fields.md) | Support vendor extension fields prefixed `x-`, carried through as opaque data | **Accepted** | 2026-08-22 |
+| [0011](0011-id-keyed-collections.md) | Key quests and objectives by id rather than listing them in arrays | Proposed | 2026-08-23 |
+| [0012](0012-params-object.md) | Carry type-specific data in an unconstrained `params` object | Proposed | 2026-08-23 |
 
 ## Reading order
 

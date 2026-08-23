@@ -1,0 +1,10 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Objective Without A Type" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "title": "Find the camp" } }
+    }
+  }
+}

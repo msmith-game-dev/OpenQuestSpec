@@ -1,0 +1,13 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Requires Names An Objective That Does Not Exist" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "reach-camp": { "type": "reach-location" },
+        "defeat-leader": { "type": "defeat", "requires": ["scout-the-perimeter"] }
+      }
+    }
+  }
+}

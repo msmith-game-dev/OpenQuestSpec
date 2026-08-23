@@ -1,0 +1,12 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Minimal Document" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "reach-camp": { "type": "reach-location" }
+      }
+    }
+  }
+}

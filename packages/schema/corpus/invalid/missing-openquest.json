@@ -1,0 +1,9 @@
+{
+  "info": { "title": "No Version Declaration" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}

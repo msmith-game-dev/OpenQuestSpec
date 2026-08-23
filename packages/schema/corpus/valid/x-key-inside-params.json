@@ -1,0 +1,18 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "An x- Key Inside params Is Data, Not An Extension" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "reach-camp": {
+          "type": "reach-location",
+          "params": {
+            "location": "riverwood.camp",
+            "x-arcticflame-hint": "not an extension - params contents are unconstrained"
+          }
+        }
+      }
+    }
+  }
+}

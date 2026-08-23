@@ -1,0 +1,69 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  corpus:
+    name: Corpus (Ajv)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Schema is a valid 2020-12 schema
+        run: pnpm run corpus:meta
+      - name: Every corpus case behaves as recorded
+        run: pnpm run corpus
+
+  cross-validator:
+    name: Cross-implementation (check-jsonschema)
+    runs-on: ubuntu-latest
+    # The corpus job proves the schema works with Ajv. Ajv is also what @openquest/core
+    # will use, so on its own it proves portability to exactly one implementation --
+    # which is not the claim the specification makes. This job runs a validator from a
+    # different language and a different codebase, so "any conforming validator" is
+    # tested rather than asserted.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install check-jsonschema
+
+      - name: Valid documents are accepted
+        run: |
+          check-jsonschema \
+            --schemafile packages/schema/openquest-0.1-draft.schema.json \
+            packages/schema/corpus/valid/*.json examples/*.json
+
+      - name: Structurally invalid documents are rejected
+        run: |
+          set -u
+          schema=packages/schema/openquest-0.1-draft.schema.json
+          failed=0
+          # Semantic cases are excluded deliberately: they PASS schema validation by
+          # design, and are handled by the next step.
+          for doc in packages/schema/corpus/invalid/*.json; do
+            case "$(basename "$doc")" in requires-dangling.json|requires-cycle.json) continue ;; esac
+            if check-jsonschema --schemafile "$schema" "$doc" >/dev/null 2>&1; then
+              echo "::error file=$doc::expected rejection, but the validator accepted it"
+              failed=1
+            fi
+          done
+          exit $failed
+
+      - name: Semantic cases pass schema validation, as the boundary requires
+        run: |
+          check-jsonschema \
+            --schemafile packages/schema/openquest-0.1-draft.schema.json \
+            packages/schema/corpus/invalid/requires-dangling.json \
+            packages/schema/corpus/invalid/requires-cycle.json

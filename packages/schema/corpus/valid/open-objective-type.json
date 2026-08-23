@@ -1,0 +1,20 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Objective Type The Schema Has Never Heard Of" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "escort-merchant": {
+          "type": "arcticflame-escort",
+          "params": { "actor": "npc.merchant", "destination": "riverwood.gate" }
+        },
+        "defeat-leader": {
+          "type": "defeat",
+          "params": { "target": "npc.bandit-leader" },
+          "requires": ["escort-merchant"]
+        }
+      }
+    }
+  }
+}

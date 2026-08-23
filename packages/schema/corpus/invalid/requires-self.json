@@ -1,0 +1,12 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Objective Requires Itself" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "reach-camp": { "type": "reach-location", "requires": ["reach-camp"] }
+      }
+    }
+  }
+}

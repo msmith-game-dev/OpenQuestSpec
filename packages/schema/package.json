@@ -1,0 +1,29 @@
+{
+  "name": "@openquest/schema",
+  "version": "0.1.0-draft.0",
+  "description": "The normative JSON Schema and specification prose for the OpenQuestSpec quest document format.",
+  "keywords": [
+    "openquest",
+    "quest",
+    "json-schema",
+    "gamedev",
+    "specification"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msmith-game-dev/OpenQuestSpec.git",
+    "directory": "packages/schema"
+  },
+  "files": [
+    "openquest-0.1-draft.schema.json",
+    "SPECIFICATION.md",
+    "corpus"
+  ],
+  "exports": {
+    "./0.1-draft": "./openquest-0.1-draft.schema.json",
+    "./corpus": "./corpus/index.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

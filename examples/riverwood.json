@@ -1,0 +1,68 @@
+{
+  "openquest": "0.1-draft",
+  "info": {
+    "title": "Riverwood Main Questline",
+    "version": "0.3.0",
+    "description": "The opening arc. Two quests, deliberately short, teaching group combat and escort pacing before the mill siege."
+  },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "description": "Soft-gated on purpose. A player who skips this can still reach the mill, but at a level disadvantage we consider fair rather than punishing.",
+      "objectives": {
+        "reach-camp": {
+          "type": "reach-location",
+          "title": "Find the bandit camp",
+          "description": "No map marker on purpose. The smoke plume is the intended wayfinding cue.",
+          "params": { "location": "riverwood.camp" }
+        },
+        "defeat-leader": {
+          "type": "defeat",
+          "title": "Defeat the bandit leader",
+          "params": { "target": "npc.bandit-leader" },
+          "requires": ["reach-camp"]
+        },
+        "recover-ledger": {
+          "type": "collect",
+          "title": "Recover the stolen ledger",
+          "description": "Optional in practice: nothing requires it, but the mill quest reads better if the player has it.",
+          "params": { "item": "item.riverwood-ledger", "count": 1 },
+          "requires": ["reach-camp"]
+        }
+      },
+      "rewards": [
+        {
+          "type": "currency",
+          "description": "Tuned against the tier-2 armour price, not against playtime.",
+          "params": { "amount": 250 }
+        }
+      ]
+    },
+
+    "escort-merchant": {
+      "title": "See the Merchant Home",
+      "description": "Paced to be walkable. Combat here is a failure state for the design, not a goal.",
+      "objectives": {
+        "meet-merchant": {
+          "type": "talk",
+          "title": "Speak to Hilda at the crossroads",
+          "params": { "actor": "npc.hilda" }
+        },
+        "escort-to-gate": {
+          "type": "escort",
+          "title": "Escort Hilda to the Riverwood gate",
+          "params": { "actor": "npc.hilda", "destination": "riverwood.gate" },
+          "requires": ["meet-merchant"]
+        }
+      },
+      "rewards": [
+        { "type": "currency", "params": { "amount": 80 } },
+        {
+          "type": "reputation",
+          "description": "The reputation type is not in any vocabulary yet. It validates because 0.1-draft leaves objective and reward types open.",
+          "params": { "faction": "faction.riverwood", "amount": 10 }
+        }
+      ]
+    }
+  }
+}

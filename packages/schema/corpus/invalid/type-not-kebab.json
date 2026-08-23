@@ -1,0 +1,15 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Objective Type Uses A Dotted Namespace" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "escort-merchant": {
+          "type": "arcticflame.escort",
+          "params": { "actor": "npc.merchant" }
+        }
+      }
+    }
+  }
+}

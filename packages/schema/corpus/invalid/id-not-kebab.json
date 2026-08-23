@@ -1,0 +1,10 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Identifier Is Not Kebab-Case" },
+  "quests": {
+    "BanditCamp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}

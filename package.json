@@ -1,0 +1,21 @@
+{
+  "name": "openquestspec",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A specification for describing game quests, and a generator that turns it into engine-specific code.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msmith-game-dev/OpenQuestSpec.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "corpus": "node scripts/run-corpus.mjs",
+    "corpus:meta": "node scripts/check-schema-meta.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1"
+  }
+}

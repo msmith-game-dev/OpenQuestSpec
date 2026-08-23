@@ -1,0 +1,14 @@
+# Normalise line endings everywhere.
+#
+# ARCHITECTURE.md binds emitted files to \n regardless of host platform, and the
+# determinism rule requires byte-identical output for identical input. Without this,
+# Git's autocrlf rewrites checked-in files on Windows checkouts, and golden-file
+# comparisons fail on one platform while passing on another.
+* text eol=lf
+
+# Explicitly binary — never touched.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary

@@ -1,0 +1,13 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Dependency Graph Contains A Cycle" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": {
+        "reach-camp": { "type": "reach-location", "requires": ["defeat-leader"] },
+        "defeat-leader": { "type": "defeat", "requires": ["reach-camp"] }
+      }
+    }
+  }
+}

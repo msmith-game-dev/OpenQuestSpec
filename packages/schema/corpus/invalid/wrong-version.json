@@ -1,0 +1,10 @@
+{
+  "openquest": "0.2-draft",
+  "info": { "title": "A Version This Schema Does Not Know" },
+  "quests": {
+    "bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}

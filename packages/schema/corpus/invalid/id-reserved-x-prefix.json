@@ -1,0 +1,10 @@
+{
+  "openquest": "0.1-draft",
+  "info": { "title": "Identifier Uses The Reserved Extension Prefix" },
+  "quests": {
+    "x-bandit-camp": {
+      "title": "Clear the Bandit Camp",
+      "objectives": { "reach-camp": { "type": "reach-location" } }
+    }
+  }
+}
