@@ -143,6 +143,10 @@ rule only written down will eventually be broken.
 - **Forbidden:** Writing files. Reading files other than its own bundled templates. Mutating the
   view model. Importing from `cli`. **Branching on the content of a vendor `x-` extension field
   (ADR-0010)** — extension data is carried and emitted, never inspected.
+- **`params` is the opposite case, and the two are easy to confuse.** `params` holds type-specific
+  data that generators *must* interpret, since it is how a type knows what to emit; `x-` holds vendor
+  data they must never interpret (ADR-0012). Both are unconstrained objects on the same parent, so
+  the distinction exists only in the rules — nothing in the schema will catch a mix-up.
 - **Rule — templates render, they do not decide (ADR-0003).** Any branching beyond simple presence
   checks and iteration belongs in a registered TypeScript helper or in the view model, where it is
   typed and unit-testable.
@@ -185,7 +189,9 @@ a real regression ships unnoticed.
   semver, never a build date.
 - No absolute paths, machine names, or usernames in emitted files.
 - Never iterate a `Map`, `Set`, or object and emit in encounter order. Sort explicitly by a stable
-  key — normally the entity id — before rendering.
+  key — normally the entity id — before rendering. This is not optional housekeeping: quests and
+  objectives are id-keyed maps (ADR-0011), so the document itself carries no order to preserve, and
+  encounter order is whatever the parser happened to produce.
 - Emitted files are returned sorted by path.
 - No random values, no UUID generation, no `Date.now()` anywhere in `core` or `generators`. If an
   identifier is needed, derive it from the document content.
@@ -209,7 +215,8 @@ This is verified by an automated test, not by discipline — see *Testing strate
 | Handlebars helpers | camelCase, verb or cast | `pascal`, `csharpEscape` |
 | Diagnostic codes | `OQS` + four digits | `OQS0142` |
 | Spec field names (in JSON) | camelCase | `objectives`, `requiresAll` |
-| Quest / objective ids (authored) | kebab-case | `bandit-camp`, `reach-camp` |
+| Quest / objective ids (authored) | kebab-case, never starting `x-`; they are map keys, not fields (ADR-0011) | `bandit-camp`, `reach-camp` |
+| Objective / reward `type` values | kebab-case; open vocabulary, closed format | `reach-location`, `arcticflame-escort` |
 | Vendor extension fields | `^x-`, vendor segment recommended | `x-arcticflame-priority` |
 | Generated C# types | PascalCase, derived from id | `bandit-camp` -> `BanditCampQuest` |
 | Generated C# files | PascalCase, matching the type | `BanditCampQuest.cs` |
@@ -435,11 +442,11 @@ The most common change to the spec. It touches every layer, which is why it is w
 Rules in this file state *what*. The *why* lives in `docs/adr/`. Accepted ADRs are binding —
 if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 
-> **All records are decided. 0001, 0002, 0003, 0005, 0006, 0007, 0008, 0009 and 0010 are `Accepted`
-> and binding; 0004 was rejected. Nothing is pending.** Proposed
-> records require `/adr-review` before they carry authority; until then the rules in this file stand
-> on their own reasoning. On acceptance, `/adr-review` propagates each decision here and cites it
-> inline on the rule it produced.
+> **All records are decided. Thirteen are `Accepted` and binding — 0001 through 0003 and 0005
+> through 0014; 0004 was rejected. Nothing is pending.**
+>
+> Every accepted decision is cited inline on the rule it produced. A rule here that cites an ADR is
+> not open to being re-decided in passing — change the decision first, with a superseding record.
 
 | ADR | Status | Decision | Affects |
 |---|---|---|---|
@@ -453,10 +460,10 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0008](docs/adr/0008-self-contained-unity-output.md) | **Accepted** | Unity output is fully self-contained | `generators`, every consumer's upgrade path |
 | [0009](docs/adr/0009-apache-2-license.md) | **Accepted** | Apache 2.0 for the specification and toolchain | Licensing, implementability by third parties |
 | [0010](docs/adr/0010-vendor-extension-fields.md) | **Accepted** | `x-` vendor extension fields, carried through opaquely | `schema`, `core`, `generators` |
-| [0011](docs/adr/0011-id-keyed-collections.md) | Proposed | Quests and objectives are maps keyed by id | Document shape, references, diagnostics |
-| [0012](docs/adr/0012-params-object.md) | Proposed | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
-| [0013](docs/adr/0013-conformance-claims.md) | Proposed | Conformance self-certified against the corpus | Who may claim to implement the format |
-| [0014](docs/adr/0014-dco-sign-off.md) | Proposed | DCO sign-off required on contributions | Contribution process, future relicensing |
+| [0011](docs/adr/0011-id-keyed-collections.md) | **Accepted** | Quests and objectives are maps keyed by id | Document shape, references, diagnostics |
+| [0012](docs/adr/0012-params-object.md) | **Accepted** | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
+| [0013](docs/adr/0013-conformance-claims.md) | **Accepted** | Conformance self-certified against the corpus | Who may claim to implement the format |
+| [0014](docs/adr/0014-dco-sign-off.md) | **Accepted** | DCO sign-off required on contributions | Contribution process, future relicensing |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.

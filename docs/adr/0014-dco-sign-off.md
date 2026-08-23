@@ -1,7 +1,8 @@
 # ADR-0014: Require DCO sign-off on contributions
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-23
+- **Decided:** 2026-08-23
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context

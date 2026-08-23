@@ -1,7 +1,8 @@
 # ADR-0013: Conformance is self-certified against the corpus, and the name is reserved for conforming implementations
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-23
+- **Decided:** 2026-08-23
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context

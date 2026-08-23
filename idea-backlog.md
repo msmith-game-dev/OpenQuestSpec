@@ -5,6 +5,7 @@
 
 ## Open
 
+- Presentation order for quests — keyed maps carry no order, so a quest log has no authored sequence
 - Localization: externalize quest text so strings can be translated
 - Branching quests and conditional objectives
 - Quest prerequisites and chains spanning multiple documents

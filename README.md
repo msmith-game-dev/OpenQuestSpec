@@ -74,6 +74,24 @@ dependency graph is acyclic — cannot be expressed in JSON Schema. Documents br
 validation and are still invalid. The boundary is stated precisely in
 [SPECIFICATION.md](packages/schema/SPECIFICATION.md#the-boundary-schema-validity-vs-semantic-validity).
 
+## Building an implementation
+
+Conformance is self-certified against the corpus at `packages/schema/corpus/` — no application, no
+registry, no approval (ADR-0013). Run it and report what it says, stating which level you claim:
+
+- **Schema-conformant** — matches the recorded outcome for every case at the `schema` layer
+- **Specification-conformant** — additionally rejects the `semantic` cases, which pass schema
+  validation and are invalid anyway
+
+If you do not pass the corpus, please say your tool *works with* OpenQuestSpec documents rather than
+calling it conformant. The distinction is what stops "supports OpenQuestSpec" from meaning three
+different things to three different vendors.
+
+## Contributing
+
+Contributions require a [DCO](https://developercertificate.org/) sign-off — commit with `git commit -s`.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Working on this repo
 
 Requires Node 22+ and pnpm 9.

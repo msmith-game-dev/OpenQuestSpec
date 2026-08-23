@@ -1,7 +1,8 @@
 # Business Rules
 
 > Last updated: 2026-08-23
-> Updated by: QA pass on Quest Document Schema v0.1-draft
+> Updated by: QA pass on Quest Document Schema v0.1-draft; BR-002 scope clarified during the
+> ADR review of ADR-0012, which it contradicted as originally written
 
 These are invariants of the **quest document format**, not of a running application — this project's
 product is a specification. A rule here binds every conformant implementation, including ours.
@@ -26,11 +27,21 @@ inside a game, a build failure is recoverable and a silently wrong quest is not.
 **Validated by:** `corpus/invalid/missing-openquest.json`, `corpus/invalid/wrong-version.json`
 
 ### BR-002: Unrecognised fields are rejected, never ignored
-**Rule:** A field not defined by the specification and not matching `^x-` makes the document invalid.
+**Rule:** Within an object the specification defines — the document root, `info`, a quest, an
+objective, a reward — a field the specification does not define, and which does not match `^x-`,
+makes the document invalid.
+**Scope:** This rule reaches only into **specification-defined objects**. It does **not** reach into
+`params` contents or `x-` values, both of which are unconstrained by design (ADR-0012, ADR-0010).
+`params: { "location": "riverwood.camp" }` is valid even though the specification defines no
+`location` field, because `params` is a container for data the specification deliberately does not
+describe yet.
 **Rationale:** Silently ignoring unknown fields turns a typo into data loss — `requries` would be
 dropped and the quest would ship with no dependency, working "correctly" and doing the wrong thing.
-Bounded by BR-006, which provides the sanctioned escape.
-**Validated by:** `corpus/invalid/unknown-field.json`, `corpus/valid/unknown-field-prefixed.json`
+Bounded in two directions: BR-006 provides the sanctioned vendor escape, and the scope note above
+keeps the rule out of territory the specification has deliberately left open.
+**Validated by:** `corpus/invalid/unknown-field.json`, `corpus/valid/unknown-field-prefixed.json`,
+`corpus/valid/x-key-inside-params.json` (unconstrained `params` contents accepted),
+`corpus/valid/descriptions-everywhere.json` (`params` carrying undefined keys, accepted)
 
 ### BR-003: Quest and objective identifiers are unique within their scope
 **Rule:** No two quests in a document, and no two objectives within a quest, may share an id.

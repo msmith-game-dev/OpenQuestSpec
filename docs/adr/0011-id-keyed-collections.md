@@ -1,7 +1,8 @@
 # ADR-0011: Key quests and objectives by id rather than listing them in arrays
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-23
+- **Decided:** 2026-08-23
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context

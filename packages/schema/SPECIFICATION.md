@@ -249,8 +249,29 @@ implementation may run it and report the result.
 
 An implementation that validates only against the schema is **schema-conformant**. To be
 **specification-conformant** it must also reject the `semantic` cases. Reporting a semantic case as
-valid is conformant to the schema and not to this specification, and an implementation should say
-which of the two it claims.
+valid is conformant to the schema and not to this specification.
+
+### Claiming conformance
+
+Conformance is **self-certified**. There is no application, no registry, and no approval step — run
+the corpus and report what it says (ADR-0013).
+
+- If you pass the corpus, you may describe your implementation as supporting OpenQuestSpec, and you
+  **must state which level you claim** — schema-conformant or specification-conformant.
+- If you do not pass the corpus, you may say your tool *works with* OpenQuestSpec documents. You may
+  not call it conformant, or an implementation *of* OpenQuestSpec.
+
+The corpus is the sole arbiter. Whether something conforms is settled by running it, not by
+discussion — which is the entire reason the corpus is published rather than kept internal.
+
+Two honest caveats. This is a norm rather than an enforceable right: the project holds no registered
+trademark, so nothing stops a non-conforming implementation claiming the name except the fact that
+anyone can check in about a minute. And because certification is self-reported, a false claim stays
+invisible until somebody does check.
+
+**Adding a case to the corpus can invalidate an existing claim.** That is correct — a claim is a
+claim about the current corpus — but it means corpus additions are a versioned, announced change,
+never a silent commit.
 
 ## Deliberately absent from 0.1-draft
 

@@ -6,6 +6,39 @@ on:
   pull_request:
 
 jobs:
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    # Only meaningful on pull requests: it checks the commits a PR proposes to add.
+    # Unenforced DCO is theatre, and a provenance record with silent gaps is worse
+    # than none because it looks complete (ADR-0014).
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Every commit carries a Signed-off-by trailer
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -u
+          failed=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            if ! git log -1 --format='%(trailers:key=Signed-off-by)' "$sha" | grep -q .; then
+              echo "::error::$(git log -1 --format='%h %s' "$sha") is missing a Signed-off-by trailer"
+              failed=1
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo ""
+            echo "Sign off with 'git commit -s', or for an existing branch:"
+            echo "  git rebase --signoff ${BASE}"
+            echo "See CONTRIBUTING.md."
+            exit 1
+          fi
+          echo "All commits signed off."
+
   corpus:
     name: Corpus (Ajv)
     runs-on: ubuntu-latest
