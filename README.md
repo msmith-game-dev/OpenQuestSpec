@@ -111,6 +111,7 @@ using it, without asking. Apache 2.0 was chosen over MIT specifically for its **
 grant**, which is the question a studio's legal review asks before committing a content pipeline to
 someone else's format.
 
-> **Attribution is not yet recorded.** The licence grant above is in force, but no `NOTICE` file or
-> copyright line names the copyright holder yet. That does not affect your permission to use the
-> work; it is an open item for this project to resolve.
+Copyright 2026 Arctic Flame Games Ltd — see [NOTICE](NOTICE).
+
+Contributors keep copyright in their own contributions and license them under Apache 2.0 by signing
+off; see [CONTRIBUTING.md](CONTRIBUTING.md).
