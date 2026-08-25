@@ -1,13 +1,15 @@
 # Business Rules
 
-> Last updated: 2026-08-23
-> Updated by: QA pass on Quest Document Schema v0.1-draft; BR-002 scope clarified during the
-> ADR review of ADR-0012, which it contradicted as originally written
+> Last updated: 2026-08-25
+> Updated by: QA pass on @openquest/core (BR-008 added; BR-004 and BR-005 gained enforcement).
+> Earlier: QA pass on Quest Document Schema v0.1-draft; BR-002 scope clarified during the ADR
+> review of ADR-0012, which it contradicted as originally written
 
 These are invariants of the **quest document format**, not of a running application — this project's
 product is a specification. A rule here binds every conformant implementation, including ours.
 
-**Validated by** cites conformance corpus cases rather than test files. The corpus is part of the
+**Validated by** cites conformance corpus cases first, and implementation tests where a rule is now
+enforced in code. The corpus is part of the
 specification (ADR-0002), so these rules are enforceable by anyone, not only by this repository.
 `pnpm run corpus` executes them all.
 
@@ -63,6 +65,9 @@ loads, validates, and can never be completed — the most expensive class of con
 because nothing reports an error.
 **Validated by:** `corpus/invalid/requires-dangling.json` — semantic layer: passes schema validation
 and is still invalid. JSON Schema cannot check that a string resolves to a sibling key.
+Enforced since 2026-08-25 by `@openquest/core` (`OQS0007`);
+`packages/core/src/semantic.test.ts` — "SEM-1 — requires must resolve", including that a quest id is
+not an objective id and that a reference to `constructor` does not resolve through the prototype.
 
 ### BR-005: The dependency graph within a quest is acyclic, including self-reference (SEM-2)
 **Rule:** The `requires` relation must contain no cycle. **An objective listing its own id is a
@@ -73,6 +78,14 @@ implementations disagreeing on a degenerate input is precisely the divergence a 
 specification exists to prevent.
 **Validated by:** `corpus/invalid/requires-cycle.json`, `corpus/invalid/requires-self.json` — both
 semantic layer. JSON Schema cannot traverse a graph.
+Enforced since 2026-08-25 by `@openquest/core` (`OQS0008`);
+`packages/core/src/semantic.test.ts` — "SEM-2 — the dependency graph must be acyclic", including the
+self-reference case and a cycle spanning 20,000 objectives.
+
+> **Detection must not be bounded by call stack.** QA found a recursive traversal that threw on a
+> valid chain of ten thousand objectives. The threshold depended on available stack, so the same
+> document could validate in CI and crash elsewhere — a rule that holds only for small documents is
+> not a rule. The traversal is iterative for this reason.
 
 ---
 
@@ -99,3 +112,23 @@ points today, but if a future version permits extensions on a map, an existing q
 `x-something` would become ambiguous with no way to disambiguate. Reserving now costs one rejected
 edge case; reserving later would break shipped documents.
 **Validated by:** `corpus/invalid/id-reserved-x-prefix.json`
+
+---
+
+## Document Equivalence
+
+### BR-008: A document's meaning does not depend on key order
+**Rule:** Two documents differing only in the order of keys within `quests`, `objectives`, or any
+other object are equivalent. Reordering keys never changes validity, and never changes what an
+implementation produces from the document.
+**Rationale:** Quests and objectives are keyed maps (ADR-0011), and JSON object key order carries no
+meaning. An implementation whose output varied with key order would produce diffs on documents
+nobody edited — and under self-contained emission (ADR-0008), consumers read those diffs in review.
+Once people learn generated diffs are noise, a real regression passes unnoticed.
+
+This is the rule behind `ARCHITECTURE.md`'s requirement to sort by a stable key before emitting.
+`@openquest/core` sorts in normalization rather than leaving it to each consumer, so getting it
+wrong requires deliberately un-sorting rather than merely forgetting.
+**Validated by:** `packages/core/src/normalize.test.ts` — "produces an identical view model from two
+documents differing only in key order", plus the ordering assertions for quests, objectives and
+`requires`.

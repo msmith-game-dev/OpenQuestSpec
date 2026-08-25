@@ -21,6 +21,7 @@ Status: **Proposed** (awaiting `/adr-review`) · **Accepted** · **Rejected** ·
 | [0012](0012-params-object.md) | Carry type-specific data in an unconstrained `params` object | **Accepted** | 2026-08-23 |
 | [0013](0013-conformance-claims.md) | Conformance is self-certified against the corpus, and the name is reserved for conforming implementations | **Accepted** | 2026-08-23 |
 | [0014](0014-dco-sign-off.md) | Require DCO sign-off on contributions | **Accepted** | 2026-08-23 |
+| [0015](0015-diagnostic-code-scheme.md) | Diagnostic codes are a flat permanent sequence, with classification in a `layer` field | Proposed | 2026-08-24 |
 
 ## Reading order
 

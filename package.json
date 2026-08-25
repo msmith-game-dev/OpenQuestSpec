@@ -15,9 +15,16 @@
   },
   "scripts": {
     "corpus": "node scripts/run-corpus.mjs",
-    "corpus:meta": "node scripts/check-schema-meta.mjs"
+    "corpus:meta": "node scripts/check-schema-meta.mjs",
+    "purity": "node scripts/check-core-purity.mjs",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "pnpm run corpus:meta && pnpm run corpus && pnpm run purity && pnpm run typecheck && pnpm test"
   },
   "devDependencies": {
-    "ajv": "^8.17.1"
+    "ajv": "^8.17.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
   }
 }

@@ -57,6 +57,35 @@ jobs:
       - name: Every corpus case behaves as recorded
         run: pnpm run corpus
 
+  core:
+    name: Core (types, purity, tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Types
+        run: pnpm run typecheck
+
+      - name: core is pure
+        # ADR-0007. The rule was written down and unenforced from the
+        # architecture pass until this milestone; a rule only written down
+        # eventually gets broken.
+        run: pnpm run purity
+
+      - name: Unit and conformance tests
+        # Includes the specification-conformance suite: core must produce the
+        # recorded outcome for every corpus case, INCLUDING the semantic ones
+        # that a schema validator cannot detect (ADR-0013).
+        run: pnpm test
+
   cross-validator:
     name: Cross-implementation (check-jsonschema)
     runs-on: ubuntu-latest

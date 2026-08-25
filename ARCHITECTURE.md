@@ -112,9 +112,14 @@ scripts/        Repo tooling only — not published, not part of the specificati
 The purity of `core` is not stylistic (ADR-0007). It is what allows the same validation logic to run
 in a browser playground, in a VS Code language server, and in CI — three surfaces that matter a great
 deal for a format seeking adoption, and all three are closed off the moment `core` calls
-`fs.readFileSync`. The rule is currently written down but not enforced; a dependency check that
-fails the build on a forbidden import belongs in the first milestone that creates `core`, because a
-rule only written down will eventually be broken.
+`fs.readFileSync`. **The rule is enforced** by `scripts/check-core-purity.mjs`, which fails the build
+on a forbidden import or on `process`/`console` usage — `pnpm run purity`, and a CI job.
+
+That check is inspection, not a type-level guarantee: it reads static imports and identifier usage,
+which is all an ESM codebase should contain, but a dynamic import assembled from a runtime string
+would slip past it. It deliberately ignores tests, which read corpus files on purpose — a test is
+not `core`. Importing the normative schema is module resolution rather than filesystem access and is
+explicitly allowed; a check that rejected it would be wrong.
 
 ---
 
@@ -276,13 +281,25 @@ extensions manifest would catch it, and was rejected on ceremony rather than pri
 ```typescript
 interface Diagnostic {
   severity: 'error' | 'warning';
-  code: string;                       // 'OQS0142'
+  layer: 'syntax' | 'schema' | 'semantic';   // see below
+  code: DiagnosticCode;               // 'OQS0142'
   message: string;                    // human-readable, no trailing period
   pointer: string;                    // RFC 6901 JSON pointer: '/quests/bandit-camp/objectives/1'
   loc?: SourceLocation;               // line/column/file, when parsed from text
   hint?: string;                      // optional suggested fix
 }
 ```
+
+- **`layer` classifies the failure; the code does not (ADR-0015).** Codes are a flat sequence and
+  carry no encoded meaning — do not reintroduce reserved ranges believing it an improvement. A
+  diagnostic's layer can legitimately move as per-type validation lands (ADR-0012), and a field can
+  be updated where a permanent identifier cannot.
+  - `syntax` — the input is not well-formed JSON. Has no conformance-corpus coverage and cannot
+    have any, since an unparseable file cannot be a corpus case; unit tests are its only guard.
+  - `schema` — detectable by a stock JSON Schema validator.
+  - `semantic` — not expressible in JSON Schema; the document validates and is invalid anyway.
+- **The code catalogue lives in `packages/core/src/diagnostic.ts`**, as code rather than prose, so
+  that minting a code without recording it is a type error rather than a documentation lapse.
 
 - **Every diagnostic carries a `pointer`.** A `loc` is additionally present whenever the document
   came from text rather than a plain object.
@@ -403,11 +420,20 @@ deliberate: the great majority of what can go wrong here is catchable without la
 ### Running tests
 
 ```bash
-pnpm test              # everything
+pnpm run check         # everything below, in order — what CI runs
+pnpm test              # unit + conformance suites
 pnpm test:watch        # watch mode
-pnpm --filter @openquest/core test    # one package
-pnpm test:golden       # regenerate goldens and diff
+pnpm run typecheck     # tsc -b across the workspace
+pnpm run purity        # core imports nothing it must not (ADR-0007)
+pnpm run corpus        # the corpus under a third-party validator
+pnpm run corpus:meta   # the schema is itself a valid 2020-12 schema
 ```
+
+`pnpm run corpus` and `pnpm test` both run the corpus, and that is deliberate rather than
+duplication. The first runs it through **Ajv directly**, proving the published schema behaves for a
+third party who never installs this toolchain. The second runs it through **core**, proving this
+implementation is specification-conformant — which includes rejecting the semantic cases Ajv passes
+by design. Neither substitutes for the other.
 
 ---
 
@@ -464,6 +490,7 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0012](docs/adr/0012-params-object.md) | **Accepted** | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
 | [0013](docs/adr/0013-conformance-claims.md) | **Accepted** | Conformance self-certified against the corpus | Who may claim to implement the format |
 | [0014](docs/adr/0014-dco-sign-off.md) | **Accepted** | DCO sign-off required on contributions | Contribution process, future relicensing |
+| [0015](docs/adr/0015-diagnostic-code-scheme.md) | Proposed | Flat diagnostic codes; class carried in a `layer` field | `core`, every consumer of diagnostics |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.

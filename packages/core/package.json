@@ -1,0 +1,43 @@
+{
+  "name": "@openquest/core",
+  "version": "0.1.0-draft.0",
+  "description": "Parses, validates and normalizes OpenQuestSpec quest documents. Pure: no filesystem, no process, no network.",
+  "license": "Apache-2.0",
+  "author": "Arctic Flame Games Ltd",
+  "type": "module",
+  "keywords": [
+    "openquest",
+    "quest",
+    "validator",
+    "json-schema",
+    "gamedev"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msmith-game-dev/OpenQuestSpec.git",
+    "directory": "packages/core"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@openquest/schema": "workspace:*",
+    "ajv": "^8.17.1",
+    "json-source-map": "^0.6.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

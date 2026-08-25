@@ -72,3 +72,80 @@ disagreeing, with the schema right each time. Corpus grew 16 → 19 cases. Busin
 through BR-007 were established by this pass. See `qa-findings.md`.
 
 ---
+
+## Archived 2026-08-25
+
+### @openquest/core — parser and validator [COMPLETED]
+
+> **Completed:** 2026-08-25
+
+> Deliver the first implementation that actually enforces the specification: a pure library that
+> turns quest document text into a normalized view model or a list of diagnostics, catching the two
+> semantic rules no JSON Schema validator can detect.
+
+The specification currently promises more than any implementation delivers. SEM-1 and SEM-2 are
+written in `SPECIFICATION.md`, recorded as BR-004 and BR-005, and have three corpus cases — and
+**nothing enforces them.** A stock validator passes a quest whose `requires` names an objective that
+does not exist, which BR-004's own rationale calls the most expensive class of content bug: the quest
+loads, validates, and can never be completed, with nothing reporting an error.
+
+Per ADR-0013 this milestone produces the project's first **specification-conformant** implementation.
+Ajv and `check-jsonschema` are schema-conformant only; neither can be otherwise.
+
+**Diagnostic codes are permanent and never reused**, so their allocation is settled here: a flat
+sequence, with the schema/semantic distinction carried in a `layer` field on `Diagnostic` rather than
+encoded in the number. Encoding meaning into a permanent identifier ages badly — a diagnostic's class
+can move between layers as conditional validation grows, and a code that has become a lie cannot be
+renumbered. The corpus already models this correctly, with `layer` as data rather than as a digit.
+
+The CLI is deliberately **not** in scope. Core is pure (ADR-0007) and fully verifiable against the
+corpus without it. The honest cost: this milestone ships nothing an end user can run.
+
+#### Acceptance Criteria
+
+- [x] Core produces the recorded outcome for **every** case in the conformance corpus, including the
+      three at the `semantic` layer — making it the first specification-conformant implementation
+      under ADR-0013
+- [x] A document whose `requires` names a non-existent objective produces an error diagnostic
+      identifying SEM-1, with a JSON Pointer to the offending objective
+- [x] A document where an objective requires itself produces an error diagnostic identifying SEM-2 —
+      the degenerate one-node cycle a distinct-node check silently misses
+- [x] Every diagnostic carries an RFC 6901 JSON Pointer; a diagnostic from parsed text also carries
+      line and column
+- [x] Validation collects rather than stopping at the first failure — a document with three distinct
+      problems reports three diagnostics, not one
+- [x] Core returns diagnostics and never throws for invalid input; any exception escaping core on a
+      corpus document is treated as a defect in core, not as a rejection
+- [x] The build fails if `core` imports `fs`, `path`, `process`, `console`, or any network module
+      (ADR-0007) — the rule is currently written down and unenforced
+- [x] `params` contents and `x-` extension values reach the view model **unmodified and
+      uninterpreted** (ADR-0010, ADR-0012)
+
+#### Tasks
+
+- [x] Create `packages/core` — TypeScript, ESM, `tsc` project references, Vitest
+- [x] Define the `Diagnostic` type per `ARCHITECTURE.md`, plus the `layer` field and the flat code
+      allocation, and record the codes minted by this milestone
+- [x] Parse JSON preserving source positions, mapping JSON Pointers to line and column
+- [x] Validate against the normative schema, translating Ajv errors into diagnostics with pointers
+- [x] Implement the semantic validation pass: SEM-1 (`requires` resolves) and SEM-2 (acyclic,
+      including self-reference)
+- [x] Normalize into the `QuestDocument` view model, carrying `params` and `x-` through untouched
+- [x] Add a dependency check to CI that fails the build on a forbidden import in `core`
+- [x] Run the full corpus through core in CI and assert specification-conformance
+
+#### QA outcome
+
+Passed after in-pass remediation. Six findings, one a genuine crash: cycle detection used a recursive
+traversal and threw `RangeError` on a well-formed, schema-valid chain of ~10,000 objectives —
+violating ADR-0007 and acceptance criterion 6. Replaced with an explicit-stack traversal, with
+regressions at 10k, 50k and a 20k-node cycle.
+
+The defect survived dev because the dev-phase test of exactly this scenario passed for the wrong
+reason: an ascending chain visits dependencies before dependents, so recursion depth never exceeded
+one even at 50,000 objectives. Only reversing the chain exposed it.
+
+Suite grew 75 → 131 tests. BR-008 added; BR-004 and BR-005 gained enforcement for the first time.
+See `qa-findings.md`.
+
+---
