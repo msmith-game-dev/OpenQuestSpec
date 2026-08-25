@@ -60,7 +60,30 @@ needs no schema change. See [SPECIFICATION.md](packages/schema/SPECIFICATION.md)
 
 ## Validating a document
 
-You do not need this repository. Point any JSON Schema 2020-12 validator at the schema:
+```bash
+openquest validate quests/riverwood.json
+openquest validate quests/*.json --format json
+```
+
+```
+quests/riverwood.json
+  9:59   error OQS0007  requires names scout-the-perimeter, which is not an objective of this quest
+         at /quests/bandit-camp/objectives/defeat-leader/requires/0 [semantic]
+         hint: Cross-quest references are not allocated in 0.1-draft; requires is quest-local
+
+1 document checked, 1 invalid (1 problem)
+```
+
+Exit codes are the part a build script depends on: `0` every document valid, `1` a document was read
+and is wrong, `2` a usage error such as a missing file or a bad flag, `70` an internal error — which
+is a defect here and never a statement about your document.
+
+**This catches things a schema validator cannot.** The example above passes JSON Schema validation
+and is still invalid.
+
+### Without installing anything
+
+Point any JSON Schema 2020-12 validator at the schema:
 
 ```bash
 # Python
@@ -76,8 +99,11 @@ Most editors will also give you autocomplete and inline errors if you reference 
 
 **A schema validator is not the whole story.** Two rules — that `requires` resolves, and that the
 dependency graph is acyclic — cannot be expressed in JSON Schema. Documents breaking them pass schema
-validation and are still invalid. The boundary is stated precisely in
-[SPECIFICATION.md](packages/schema/SPECIFICATION.md#the-boundary-schema-validity-vs-semantic-validity).
+validation and are still invalid, which is why the CLI above exists. The boundary is stated precisely
+in [SPECIFICATION.md](packages/schema/SPECIFICATION.md#the-boundary-schema-validity-vs-semantic-validity).
+
+> The CLI is **not published to npm yet** — run it from a clone with
+> `node packages/cli/dist/bin.js`. Publishing is its own milestone.
 
 ## Building an implementation
 

@@ -4,7 +4,7 @@
 
 ## Build status
 
-Two of the four packages exist. **Sections describing the other two are design intent, and say so
+Three of the four packages exist. **Sections describing the fourth are design intent, and say so
 inline** — read the marker, not the confidence of the prose.
 
 | Package | Status | What is there |
@@ -12,9 +12,9 @@ inline** — read the marker, not the confidence of the prose.
 | `packages/schema` | **Shipped** 2026-08-23 | Normative JSON Schema 2020-12, `SPECIFICATION.md`, 19-case conformance corpus |
 | `packages/core` | **Shipped** 2026-08-25 | Parse, validate, normalize. Pure. 131 tests |
 | `packages/generators` | **Not built** | Design intent only. Bound by ADR-0003, ADR-0008 |
-| `packages/cli` | **Not built** | Design intent only. Nothing an end user can run yet exists |
+| `packages/cli` | **Shipped** 2026-08-25 | `openquest validate`. Text and JSON output, exit codes |
 
-Rules for unbuilt packages are **binding when the code is written**, not optional. They were decided
+Rules for the unbuilt package are **binding when the code is written**, not optional. They were decided
 in accepted records, and a milestone that contradicts one needs a superseding ADR rather than a
 convenient reinterpretation.
 
@@ -66,6 +66,7 @@ umbrella publish something false until it is updated too.
 | Schema validation | Ajv, JSON Schema 2020-12 | 8.20 |
 | JSON parsing (positions) | `json-source-map` — maps JSON Pointers to line/column | 0.6.1 |
 | Test framework | Vitest | 2.1.9 |
+| CLI argument parsing | `node:util.parseArgs` — no dependency | built in |
 | Build | `tsc` project references | 5.9.3 |
 
 **Decided but not yet installed** — these belong to packages that do not exist. They are recorded
@@ -74,7 +75,6 @@ here because an accepted ADR binds them, not as a wish list:
 | Concern | Choice | Bound by |
 |---|---|---|
 | Templating | Handlebars | ADR-0003 |
-| CLI argument parsing | commander | — convention, not yet an ADR |
 | Release | changesets | — convention, not yet an ADR |
 
 > **Node version:** `engines` requires `>=22` and CI runs 22. Local development has been on 20.12,
@@ -136,8 +136,7 @@ packages/
                 this layout is that every engine ships on one version, and a
                 future split should be a move, not a refactor.
 
-  cli/          NOT BUILT — design intent.
-                Argument parsing, file discovery, reading input, writing output,
+  cli/          Argument parsing, file discovery, reading input, writing output,
                 formatting diagnostics, exit codes. The ONLY package permitted to
                 touch fs, process, or console.
 
@@ -221,9 +220,6 @@ explicitly allowed; a check that rejected it would be wrong.
   emit* through nested Handlebars conditionals is not — that computation belongs in the view model.
 
 ### `cli`
-
-> **NOT BUILT.** Design intent, binding when the code is written. Nothing an end user can run
-> currently exists — `core` is a library and has no entry point.
 
 - **Allowed:** argv parsing, resolving globs and paths, reading input files, writing output files,
   formatting diagnostics for a terminal, setting exit codes.
@@ -420,7 +416,7 @@ reproducible from what is committed.
 | Variable | Configures | Required |
 |---|---|---|
 | `OPENQUEST_NO_COLOR` | Disables ANSI colour in diagnostics. `NO_COLOR` is also honoured | No |
-| `OPENQUEST_LOG_LEVEL` | `silent` / `error` / `warn` / `info` / `debug`. Default `info` | No |
+| `OPENQUEST_LOG_LEVEL` | **Not implemented.** Specified before the CLI existed; the CLI reads no log level and there is no logging system to configure. Either build one or drop this row — do not leave it as a promise | — |
 | `NPM_TOKEN` | CI publish only. Never read by application code | CI only |
 
 ---
@@ -516,6 +512,7 @@ pnpm test              # unit + conformance suites
 pnpm test:watch        # watch mode
 pnpm run typecheck     # tsc -b across the workspace
 pnpm run purity        # core imports nothing it must not (ADR-0007)
+pnpm run legal         # every package carries LICENSE and NOTICE, unchanged
 pnpm run corpus        # the corpus under a third-party validator
 pnpm run corpus:meta   # the schema is itself a valid 2020-12 schema
 ```

@@ -1,28 +1,29 @@
 {
-  "name": "@openquest/core",
+  "name": "@openquest/cli",
   "version": "0.1.0-draft.0",
-  "description": "Parses, validates and normalizes OpenQuestSpec quest documents. Pure: no filesystem, no process, no network.",
+  "description": "Command-line validator for OpenQuestSpec quest documents.",
   "license": "Apache-2.0",
   "author": "Arctic Flame Games Ltd",
   "type": "module",
   "keywords": [
     "openquest",
     "quest",
+    "cli",
     "validator",
-    "json-schema",
     "gamedev"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/msmith-game-dev/OpenQuestSpec.git",
-    "directory": "packages/core"
+    "directory": "packages/cli"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "bin": {
+    "openquest": "./dist/bin.js"
+  },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/run.d.ts",
+      "default": "./dist/run.js"
     }
   },
   "files": [
@@ -31,13 +32,10 @@
     "NOTICE"
   ],
   "scripts": {
-    "build": "tsc -b",
-    "test": "vitest run"
+    "build": "tsc -b"
   },
   "dependencies": {
-    "@openquest/schema": "workspace:*",
-    "ajv": "^8.17.1",
-    "json-source-map": "^0.6.1"
+    "@openquest/core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

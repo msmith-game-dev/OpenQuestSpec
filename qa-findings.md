@@ -36,3 +36,19 @@ contradicting the schema. This pass, the two headline findings are both *a check
 work and did not* — a test passing for the wrong reason, and a criterion signed off by reading rather
 than running. Different subject, same shape: **the verification was the thing that was wrong, not the
 implementation.** Worth a `qa-retro` once a third pass gives a denominator.
+
+## @openquest/cli — validate from a terminal — 2026-08-25
+
+- `untested-error-path` — **the significant one.** `EXIT_INTERNAL` (70) existed and had never executed. Worse, it could not fire where it mattered: `bin.ts` passed `version: readVersion()`, an argument expression evaluated *before* `run()` was entered and therefore outside the try block that produces it. A broken install exited **1**, which tells a build script the user's quest is invalid rather than that the tool is broken — wrong in the most misleading available direction. Fixed by passing `version` as a thunk, which also made the path testable; five tests added.
+- `ambiguous-contract` — the `--format json` shape reported `ok: false` for both "could not read this file" and "read it and it is invalid", forcing a consumer to probe for the *presence* of an `unreadable` key to tell them apart. Added an explicit `status: valid | invalid | unreadable`. Also `summary.files` counted only readable files, reporting `files: 1` for two arguments. Caught while the shape still had a version field and no consumers — the only moment this is free.
+- `vacuous-test` — found by dev, not by QA, and recorded because the *class* matters: four spawn-based colour tests asserted "no ANSI escapes" and would have passed even if `NO_COLOR` were ignored entirely, because `spawnSync` pipes stdout so `isTTY` is always false. Fixed with direct tests proving colour *is* emitted when it should be.
+- `packaging-defect` — every package was publishing `dist/.tsbuildinfo`, 25–40kB of incremental build state. Found by running `npm pack --dry-run` rather than by reading configuration.
+- `doc-promises-unbuilt-behaviour` — `ARCHITECTURE.md` documents `OPENQUEST_LOG_LEVEL`, specified before the CLI existed. Nothing reads it and there is no logging system to configure. Marked **Not implemented** rather than inventing one to make the document true.
+- `clean` — all eight acceptance criteria passed on first run. Both defects above were found outside the criteria, by attacking the code rather than checking the list.
+
+**Pattern, now across three passes.** Pass one: prose contradicting the schema. Pass two: checks that
+appeared to work and did not. Pass three: an error path that had never executed, and a contract that
+could not express a distinction it needed. The common thread is not carelessness in the
+implementation — every acceptance criterion passed each time. It is that **the criteria describe the
+happy path and the defects live outside it.** Three passes is a denominator; `qa-retro` has something
+to work with now.

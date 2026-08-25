@@ -149,3 +149,86 @@ Suite grew 75 → 131 tests. BR-008 added; BR-004 and BR-005 gained enforcement 
 See `qa-findings.md`.
 
 ---
+
+## Archived 2026-08-25
+
+### @openquest/cli — validate from a terminal [COMPLETED]
+
+> **Completed:** 2026-08-25
+
+> Give anyone with Node a command that validates a quest document and reports what is wrong and
+> where — the first part of this project an end user can actually run.
+
+The project has a published specification and a specification-conformant validator, and **nobody
+outside this repository can run either.** `@openquest/core` is a library with no entry point. A
+studio evaluating the format today can check structure with a stock JSON Schema tool and gets
+nothing for SEM-1 and SEM-2 — the two rules that catch a quest which loads, validates, and can never
+be completed.
+
+Scope is `validate` only. `generate` needs a generator, and there is not one.
+
+Argument parsing uses **`node:util.parseArgs`** rather than commander. The runtime already required
+by `engines` provides it, the CLI surface is one command and a few flags, and the project's other
+packages carry zero and two dependencies respectively. Hand-written help is the accepted cost;
+parsing lives in one file, so adopting commander later is cheap in a way most stack choices are not.
+`ARCHITECTURE.md` currently lists commander with no ADR behind it, and this milestone corrects that.
+
+**`--format json` is in scope, and not for convenience.** If human-readable text is the only output,
+people will parse it, and the human format silently becomes a contract that cannot change without
+breaking someone's script. A sanctioned machine format is what stops the unsanctioned one hardening.
+
+Publishing is **not** in scope — a release process is its own milestone. One publishing defect is
+fixed here anyway, because it has been open since 2026-08-23 and costs one task.
+
+#### Acceptance Criteria
+
+- [x] `openquest validate examples/riverwood.json` exits `0` and reports success
+- [x] Validating a document whose `requires` names a missing objective exits `1` and reports the
+      SEM-1 failure with the file, line and column of the offending entry
+- [x] A malformed JSON file exits `1`, not `2` — the document was read and is wrong, which is a
+      different thing from the user asking for something that is not there
+- [x] A path that does not exist exits `2`, and an unrecognised flag exits `2`
+- [x] `--format json` emits parseable JSON in which every diagnostic carries `code`, `layer`,
+      `pointer`, `message` and `loc`
+- [x] Setting `NO_COLOR` or `OPENQUEST_NO_COLOR` produces output containing no ANSI escape sequences
+- [x] Given several files where more than one is invalid, every file is validated and every
+      diagnostic reported — the run does not stop at the first bad document
+- [x] Every publishable package contains `LICENSE` and `NOTICE`, verifiable from the packed tarball
+      rather than from the repository
+
+#### Tasks
+
+- [x] Create `packages/cli` — TypeScript, ESM, a `bin` entry, argv parsed with `node:util.parseArgs`
+- [x] Write `--help` and `--version` output by hand, including exit-code documentation
+- [x] Discover and read input files, handing text to `core` — `cli` is the only package permitted
+      `fs`, `process` and `console` (ADR-0007)
+- [x] Format diagnostics for a terminal, honouring `NO_COLOR` and `OPENQUEST_NO_COLOR`
+- [x] Add `--format json` machine-readable output
+- [x] Implement exit codes `0`, `1`, `2` and `70` exactly as `ARCHITECTURE.md` specifies
+- [x] Include `LICENSE` and `NOTICE` in every publishable package — they currently sit at the repo
+      root and npm will not include them for a workspace package, so both would publish declaring
+      Apache-2.0 with no licence text, which section 4(a) requires. **Unrelated to the CLI; split it
+      out if this milestone runs long**
+- [x] Test by spawning the built CLI and asserting stdout, stderr and exit code — the layer rule
+      says anything testable without spawning a process belongs in `core`
+- [x] Update `ARCHITECTURE.md` and `README.md`: drop commander from the stack, unmark `cli` as
+      NOT BUILT, document usage
+
+#### QA outcome
+
+Passed after in-pass remediation. All eight acceptance criteria passed on FIRST run; both defects
+were found outside the criteria, by attacking the code rather than checking the list.
+
+Exit 70 existed, had never executed, and could not fire where it mattered: `version: readVersion()`
+was an argument expression evaluated before `run()` was entered, and therefore outside the try block
+producing it. A broken install exited 1 — telling a build script the user's quest was invalid rather
+than that the tool was broken. Fixed by passing a thunk, which also made the path testable.
+
+The `--format json` contract could not distinguish "could not read this file" from "read it and it is
+invalid" — both were `ok: false`, discriminated only by the presence of a key. Added an explicit
+`status`. Caught while the shape still had a version field and no consumers.
+
+Suite grew 131 → 174 tests. No new business rules: exit codes are this tool's contract, not an
+invariant of the format. See `qa-findings.md`.
+
+---

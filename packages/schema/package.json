@@ -19,7 +19,9 @@
   "files": [
     "openquest-0.1-draft.schema.json",
     "SPECIFICATION.md",
-    "corpus"
+    "corpus",
+    "LICENSE",
+    "NOTICE"
   ],
   "exports": {
     "./0.1-draft": "./openquest-0.1-draft.schema.json",

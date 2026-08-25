@@ -74,6 +74,13 @@ jobs:
       - name: Types
         run: pnpm run typecheck
 
+      - name: Every package carries its licence
+        # npm does not include files from outside a package directory, so a
+        # workspace package publishes with no licence text unless it has its
+        # own copy. The failure is quiet: the manifest says Apache-2.0 and the
+        # tarball contains nothing to back it.
+        run: pnpm run legal
+
       - name: core is pure
         # ADR-0007. The rule was written down and unenforced from the
         # architecture pass until this milestone; a rule only written down
