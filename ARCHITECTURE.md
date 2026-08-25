@@ -2,8 +2,21 @@
 
 > Last updated: 2026-08-25
 
-> **Designed, not yet built.** This architecture was written before implementation.
-> Re-run `/architecture` after the first milestone ships to reconcile it with the real code.
+## Build status
+
+Two of the four packages exist. **Sections describing the other two are design intent, and say so
+inline** — read the marker, not the confidence of the prose.
+
+| Package | Status | What is there |
+|---|---|---|
+| `packages/schema` | **Shipped** 2026-08-23 | Normative JSON Schema 2020-12, `SPECIFICATION.md`, 19-case conformance corpus |
+| `packages/core` | **Shipped** 2026-08-25 | Parse, validate, normalize. Pure. 131 tests |
+| `packages/generators` | **Not built** | Design intent only. Bound by ADR-0003, ADR-0008 |
+| `packages/cli` | **Not built** | Design intent only. Nothing an end user can run yet exists |
+
+Rules for unbuilt packages are **binding when the code is written**, not optional. They were decided
+in accepted records, and a milestone that contradicts one needs a superseding ADR rather than a
+convenient reinterpretation.
 
 OpenQuestSpec is two products in one repository, and almost every rule below follows from
 keeping them separate:
@@ -22,18 +35,30 @@ is the difference between publishing a format and publishing a tool.
 
 ## Stack
 
+**Installed and in use:**
+
 | Concern | Choice | Version |
 |---|---|---|
-| Runtime | Node.js (LTS) | 22.x |
-| Language | TypeScript, ESM only | 5.x |
-| Package manager | pnpm workspaces | 9.x |
-| Schema validation | Ajv, JSON Schema 2020-12 | 8.x |
-| JSON parsing (positions) | `json-source-map` — maps JSON Pointers to line/column | 0.6.x |
-| Templating | Handlebars | 4.x |
-| CLI argument parsing | commander | 12.x |
-| Test framework | Vitest | 2.x |
-| Build | `tsc` project references | 5.x |
-| Release | changesets | 2.x |
+| Runtime | Node.js (LTS) | 22.x required; 20.12 in local use, see below |
+| Language | TypeScript, ESM only | 5.9.3 |
+| Package manager | pnpm workspaces | 9.15 |
+| Schema validation | Ajv, JSON Schema 2020-12 | 8.20 |
+| JSON parsing (positions) | `json-source-map` — maps JSON Pointers to line/column | 0.6.1 |
+| Test framework | Vitest | 2.1.9 |
+| Build | `tsc` project references | 5.9.3 |
+
+**Decided but not yet installed** — these belong to packages that do not exist. They are recorded
+here because an accepted ADR binds them, not as a wish list:
+
+| Concern | Choice | Bound by |
+|---|---|---|
+| Templating | Handlebars | ADR-0003 |
+| CLI argument parsing | commander | — convention, not yet an ADR |
+| Release | changesets | — convention, not yet an ADR |
+
+> **Node version:** `engines` requires `>=22` and CI runs 22. Local development has been on 20.12,
+> which prints an unsupported-engine warning on every command and is past end of life. The
+> requirement is correct; the local environment is behind it.
 
 The runtime and language are binding: the toolchain is written in TypeScript on Node.js and
 distributed via npm (ADR-0001).
@@ -81,7 +106,8 @@ packages/
                 QuestDocument view model, or into a list of Diagnostics.
                 PURE: no filesystem, no process, no console, no network.
 
-  generators/   All engine generators, sharing one package and one version
+  generators/   NOT BUILT — design intent.
+                All engine generators, sharing one package and one version
                 (ADR-0005). Handlebars templates plus the TypeScript helpers
                 registered for them. Takes a QuestDocument, returns an array of
                 { path, contents }. Writes nothing to disk.
@@ -89,7 +115,8 @@ packages/
                 this layout is that every engine ships on one version, and a
                 future split should be a move, not a refactor.
 
-  cli/          Argument parsing, file discovery, reading input, writing output,
+  cli/          NOT BUILT — design intent.
+                Argument parsing, file discovery, reading input, writing output,
                 formatting diagnostics, exit codes. The ONLY package permitted to
                 touch fs, process, or console.
 
@@ -140,8 +167,17 @@ explicitly allowed; a check that rejected it would be wrong.
   `console`, network calls, `process.exit`. Throwing for user-input errors.
 - **Rule:** Invalid user input produces diagnostics, never exceptions. Exceptions in `core` mean a
   bug in `core`. A caller must be able to validate a document held entirely in memory.
+- **Public surface:** `parseAndValidate(text, { file })` for document text, which yields diagnostics
+  carrying line and column; `validateValue(value)` for an already-parsed value, which yields
+  diagnostics carrying pointers but no location, because there was no text to locate them in.
+- **This rule has teeth and has drawn blood.** QA found a recursive traversal that threw
+  `RangeError` on a well-formed document of about ten thousand chained objectives — the threshold
+  depending on available stack, so the same document could validate in CI and crash elsewhere.
+  Algorithms in `core` are bounded by heap, not by call stack.
 
 ### `generators`
+
+> **NOT BUILT.** Design intent, binding when the code is written.
 
 - **Allowed:** Reading the normalized view model, registering Handlebars helpers, rendering
   templates, returning `EmittedFile[]`.
@@ -164,6 +200,9 @@ explicitly allowed; a check that rejected it would be wrong.
   emit* through nested Handlebars conditionals is not — that computation belongs in the view model.
 
 ### `cli`
+
+> **NOT BUILT.** Design intent, binding when the code is written. Nothing an end user can run
+> currently exists — `core` is a library and has no entry point.
 
 - **Allowed:** argv parsing, resolving globs and paths, reading input files, writing output files,
   formatting diagnostics for a terminal, setting exit codes.
@@ -369,18 +408,32 @@ reproducible from what is committed.
 
 ### Unit tests
 
-- **What:** `core` parsing, validation, normalization; Handlebars helpers; diagnostic formatting.
+- **What:** `core` parsing, validation, normalization, and the Ajv-error-to-code mapping.
 - **Mock:** nothing meaningful — `core` is pure, which is much of the point of making it pure.
 - **Location:** alongside source as `*.test.ts`.
+- **Two of them test the tests.** `contract.test.ts` asserts the guarantees `core` makes about
+  itself — every diagnostic carries a pointer, a location when parsed from text, and a `layer`
+  matching the catalogue — across hostile input rather than chosen input.
+  `purity-check.test.ts` asserts that the purity checker *rejects* things, because a checker nobody
+  has seen fail is not known to work.
 
 ### Conformance corpus
 
-- `packages/schema` carries a corpus of documents, each marked valid or invalid with the
-  diagnostic codes it must produce.
-- The corpus is part of the **specification**, not of the toolchain. A third-party implementation
-  should be able to run it and claim conformance. This is a deliverable, not an internal fixture.
+- `packages/schema` carries a corpus of documents. `corpus/index.json` records, per case, whether it
+  is `valid` or `invalid`, which `layer` an invalid case fails at, and for semantic cases which
+  `rule` it breaks.
+- **It records no diagnostic codes, deliberately (ADR-0015).** Codes are implementation-specific — a
+  third-party validator emits its own — so requiring ours would make conformance a claim about this
+  toolchain rather than about the specification. `rule` is the specification-level identifier, and it
+  is what `core`'s conformance test asserts against.
+- The corpus is part of the **specification**, not of the toolchain. Any implementation may run it
+  and claim conformance at one of the two levels ADR-0013 defines. This is a deliverable, not an
+  internal fixture, which is why adding a case is an announced change: it can invalidate a claim
+  somebody has already made.
 
 ### Golden-file tests
+
+> **NOT BUILT.** No generator exists, so there is nothing to hold a golden file of.
 
 - Generator output for each example document is committed under `examples/`.
 - CI regenerates and asserts a zero diff. A deliberate change to templates is accompanied by the
@@ -391,11 +444,17 @@ reproducible from what is committed.
 
 ### Determinism test
 
+> **NOT BUILT** for generated output. The ordering half of determinism *is* tested today —
+> `normalize.test.ts` asserts two documents differing only in key order produce identical view
+> models (BR-008).
+
 - Generate the same document twice in one process and once in a fresh process; assert all three
   outputs are byte-identical.
 - A failure here is a determinism bug. It is never retried away.
 
 ### Compile tests
+
+> **NOT BUILT.** Requires emitted C# to exist.
 
 - Generated C# must actually compile. CI compiles the Unity golden files against the Unity
   reference assemblies for the minimum supported editor version.
@@ -404,6 +463,8 @@ reproducible from what is committed.
   toolchain is written in a language that cannot compile its own output (ADR-0001).
 
 ### Engine tests
+
+> **NOT BUILT.** Requires a Unity generator.
 
 - Unity playmode tests over emitted quest code, verifying state transitions and save round-trips.
 - Introduced with the first Unity generator milestone. Run on demand and on release, not on every
@@ -416,6 +477,15 @@ reproducible from what is committed.
 
 Everything above this subsection runs headless, needs no engine, and runs on every PR. That split is
 deliberate: the great majority of what can go wrong here is catchable without launching anything.
+
+**What CI actually runs today** — `.github/workflows/validate.yml`, four jobs:
+
+| Job | Proves |
+|---|---|
+| `corpus` | The published schema behaves under Ajv |
+| `cross-validator` | It behaves the same under `check-jsonschema` — a different implementation, in a different language |
+| `core` | Types, `core` purity, and all 131 tests including specification-conformance |
+| `dco` | Every commit in a pull request is signed off (ADR-0014). **Pull requests only, so it has never executed** — all work so far has gone straight to `main` |
 
 ### Running tests
 
@@ -441,17 +511,26 @@ by design. Neither substitutes for the other.
 
 The most common change to the spec. It touches every layer, which is why it is written down.
 
-1. Add the type to the JSON Schema in `packages/schema`, as an optional additive change.
-2. Add valid and invalid documents to the conformance corpus, with expected diagnostic codes.
-3. Add any semantic validation to `core` that JSON Schema cannot express (reference targets exist,
-   no dependency cycles).
-4. Extend the normalized view model in `core`.
-5. Extend each engine's templates in `generators`.
-6. Regenerate goldens; review the emitted diff deliberately.
-7. Update the spec prose and the version's changelog entry.
-8. Unit tests for validation and helpers; the golden diff covers emission.
+**Doable today:**
+
+1. Add the type to the JSON Schema in `packages/schema`, as an additive change — per-type validation
+   uses `if`/`then` against `type` so existing documents stay valid (ADR-0012).
+2. Add valid and invalid documents to the conformance corpus. Record `expect`, and `layer` for
+   invalid cases — **not** diagnostic codes, which are implementation-specific (ADR-0015).
+3. Add any semantic validation to `core` that JSON Schema cannot express, minting a code in
+   `DIAGNOSTIC_CATALOGUE` if the failure is a new class.
+4. Extend the normalized view model in `core` if the type needs more than opaque `params`.
+5. Update `SPECIFICATION.md`. If the change alters what is structurally valid, update the boundary
+   section too — every defect in the first QA pass was prose failing to describe what the schema
+   already enforced.
+6. Unit tests for validation; the corpus covers accept/reject.
+
+**Once `generators` exists**, additionally: extend each engine's templates, regenerate goldens, and
+review the emitted diff deliberately.
 
 ## Adding a new engine target — checklist
+
+> **NOT DOABLE YET.** `packages/generators` does not exist; the first engine target creates it.
 
 1. Create `packages/generators/src/<engine>/` with its templates.
 2. Register the target in the generator index so `--target <engine>` resolves.
@@ -498,6 +577,10 @@ silent edit to a rule whose reasoning is recorded elsewhere.
 ---
 
 ## Emitted code
+
+> **NOT BUILT.** No generator exists, so nothing described in this section has ever been emitted.
+> These rules are binding on the first generator milestone, not optional guidance — several are
+> fixed by accepted records (ADR-0003, ADR-0008, ADR-0010, ADR-0012).
 
 Rules governing the code the generator produces. They constrain what templates may emit and what a
 consumer can rely on. None of this applies to the toolchain itself — see *Determinism* for the rules
@@ -561,7 +644,8 @@ which makes the migration path more important here than it would be with a share
 ## Content and tuning
 
 The quest document **is** the content and the tuning data. There is no second place where either
-lives.
+lives. This is true today for the format; the parts about regenerating and about emitted constants
+describe a generator that does not exist yet.
 
 - Designers change quest structure, objectives, and rewards by editing JSON and re-running the
   generator. No C# change is required for content work.
