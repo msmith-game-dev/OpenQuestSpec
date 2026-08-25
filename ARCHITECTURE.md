@@ -31,6 +31,27 @@ keeping them separate:
 The specification must be able to outlive any particular implementation of the toolchain. That
 is the difference between publishing a format and publishing a tool.
 
+## Place in the OpenGameSpec family
+
+This repository is one specification in the **OpenGameSpec** initiative
+([github.com/msmith-game-dev/OpenGameSpec](https://github.com/msmith-game-dev/OpenGameSpec), locally
+`../OpenGameSpec`). Each specification lives in its own repository and is versioned independently —
+that is OpenGameSpec's ADR-0001, and this repository does not re-decide it.
+
+**Authority runs one way.** This repository is authoritative for every rule about quest documents.
+The umbrella's `docs/openquest/README.md` describes the format and is forbidden from defining it;
+where the two disagree, that page is the bug.
+
+**One obligation runs the other way, and nothing else in this repository would remind you of it.**
+OpenGameSpec's `docs/specs.json` duplicates this repository's `status` and `version` — a deliberate
+duplication, and the data source for the initiative's website. Changing the version here makes the
+umbrella publish something false until it is updated too.
+
+> **Releasing a new specification version is not finished in this repository.** It also requires
+> updating `docs/specs.json` and `docs/openquest/README.md` in `../OpenGameSpec`. A stale registry
+> entry fails no build and breaks no test; it simply publishes a wrong version number to everyone
+> reading the initiative's site.
+
 ---
 
 ## Stack

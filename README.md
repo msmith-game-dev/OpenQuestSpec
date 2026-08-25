@@ -6,6 +6,11 @@ document into engine-specific source. Unity first, other engines after.
 The model is OpenAPI: a versioned format with a **normative JSON Schema**, so anyone can validate a
 quest document in any language without installing this project's tooling.
 
+Part of **[OpenGameSpec](https://github.com/msmith-game-dev/OpenGameSpec)** — open specifications for
+game content, each in its own repository and versioned independently. This repository is
+authoritative for every rule about quest documents; the umbrella describes the format and does not
+define it.
+
 > ## ⚠ 0.1-draft — nothing here is stable
 >
 > **No compatibility is promised between draft versions.** Fields may be renamed, removed, or change
