@@ -1,6 +1,6 @@
 # Architecture
 
-> Last updated: 2026-08-21
+> Last updated: 2026-08-25
 
 > **Designed, not yet built.** This architecture was written before implementation.
 > Re-run `/architecture` after the first milestone ships to reconcile it with the real code.
@@ -468,8 +468,8 @@ The most common change to the spec. It touches every layer, which is why it is w
 Rules in this file state *what*. The *why* lives in `docs/adr/`. Accepted ADRs are binding —
 if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 
-> **All records are decided. Thirteen are `Accepted` and binding — 0001 through 0003 and 0005
-> through 0014; 0004 was rejected. Nothing is pending.**
+> **All records are decided. Fourteen are `Accepted` and binding — 0001 through 0003 and 0005
+> through 0015; 0004 was rejected. Nothing is pending.**
 >
 > Every accepted decision is cited inline on the rule it produced. A rule here that cites an ADR is
 > not open to being re-decided in passing — change the decision first, with a superseding record.
@@ -490,7 +490,7 @@ if a rule here contradicts an accepted ADR, the ADR wins and this file is wrong.
 | [0012](docs/adr/0012-params-object.md) | **Accepted** | Type-specific data lives in an unconstrained `params` object | Document shape, future vocabulary |
 | [0013](docs/adr/0013-conformance-claims.md) | **Accepted** | Conformance self-certified against the corpus | Who may claim to implement the format |
 | [0014](docs/adr/0014-dco-sign-off.md) | **Accepted** | DCO sign-off required on contributions | Contribution process, future relicensing |
-| [0015](docs/adr/0015-diagnostic-code-scheme.md) | Proposed | Flat diagnostic codes; class carried in a `layer` field | `core`, every consumer of diagnostics |
+| [0015](docs/adr/0015-diagnostic-code-scheme.md) | **Accepted** | Flat diagnostic codes; class carried in a `layer` field | `core`, every consumer of diagnostics |
 
 A changed decision means a new ADR that supersedes the old one, then an update here — never a
 silent edit to a rule whose reasoning is recorded elsewhere.

@@ -1,7 +1,8 @@
 # ADR-0015: Diagnostic codes are a flat permanent sequence, with classification carried in a `layer` field
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-24
+- **Decided:** 2026-08-25
 - **Deciders:** Project owner (@msmith-game-dev)
 
 ## Context
